@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Move Semantics</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="move-semantic">Move Semantic</h1>
+<p>14, July, 2017</p>
+<p>In this document i will be providing an explanation for C++ move and i will assume you are a C++ programmer.</p>
+<h2 id="variables-and-addresses">Variables and addresses</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="dt">int</span> x = <span class="dv">0</span>;</a></code></pre></div>
+<p>This line of code just declares a variable on the stack. imagine that is line is inside some sort of a function it will be mapped to the following</p>
+<pre class="assembly"><code>mov     DWORD PTR [rbp-4], 0</code></pre>
+<p>This is just a mov instruction that does a simple thing it pushes the stack down by <code>sizeof(int)</code> and moves 0 to this memory location now from this we can conclude the following</p>
+<ul>
+<li>Variable x has a location in memory thus has an address that we can point to and put data into</li>
+<li>Constant 0 theoretically has no address … technically it has since the compiled binary is loaded into memory and you can have a pointer and manipulate it but most OSs, Compilers, and everyone will [frown upon/prevent] you doing that</li>
+</ul>
+<h2 id="pointers-and-references">Pointers and references</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" title="1"><span class="dt">int</span> x = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="dt">int</span> *z = &amp;x;</a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="dt">int</span> &amp;y = x;</a></code></pre></div>
+<p>This block of code simply does one thing but it does it in two ways that’s exactly the same.</p>
+<ul>
+<li>The first is we are making another variable <code>z</code> that’s the size of <code>sizeof(int*)</code> which if you run in a 64-bit environment will be 8 and storing the address of x into it. in case we want to use it we simply deference it <code>*z</code> and we get our x back</li>
+<li>The second is we are aliasing variable <code>x</code> or making a reference <code>y</code> to x which is under the hood a simple old pointer and the above two lines will generate the same exact assembly</li>
+</ul>
+<pre class="assembly"><code>; int x= 0
+mov     DWORD PTR [rbp-20], 0
+; int *z = &amp;x
+lea     rax, [rbp-20] ;LEA is Load Effective Address instruction it gets the address of a variable
+mov     QWORD PTR [rbp-8], rax
+; int &amp;y = x
+lea     rax, [rbp-20]
+mov     QWORD PTR [rbp-16], rax</code></pre>
+<p>So What’s the use of references ?!</p>
+<p>The answer is simple:</p>
+<ol type="1">
+<li>Syntactic sugar. it’s easier and visually appealing to act as if this is a normal variable but under the hood you didn’t copy anything at all especially function calls i.e. passing a variable by reference to a function</li>
+<li>Compiler guarantees. for example compiler can guarantee that if you pass a variable by reference, this variable will always have an address and won’t be <code>nullptr</code> . in addition to this once compiler notices a reference it can do a little more optimization like in-lining function calls … etc.</li>
+</ol>
+<h2 id="function-calls-and-convenience">Function calls and convenience</h2>
+<p>Now if i were to make a function let’s say <code>push_back</code> in <code>std::vector</code> implementation i would need this function to be easily called as following:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" title="1"><span class="dt">int</span> x = <span class="dv">20</span>;</a>
+<a class="sourceLine" id="cb5-2" title="2">vector.push_back(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb5-3" title="3">vector.push_back(x);</a></code></pre></div>
+<p>Notice that i want this function to accept r-values and l-values, and also be efficient so it doesn’t perform unnecessary copies now i have 3 options</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb6-1" title="1"><span class="dt">void</span> push_back(<span class="dt">int</span> x);</a></code></pre></div>
+<p>This option is not efficient since it passes x by value and with big values it will be a problem</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" title="1"><span class="dt">void</span> push_back(<span class="dt">int</span>&amp; x);</a></code></pre></div>
+<p>This option will not accept r-values because they have no address</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb8-1" title="1"><span class="dt">void</span> push_back(<span class="dt">int</span>* x);</a></code></pre></div>
+<p>Once again, r-values has no addresses so this won’t work you cannot write <code>push_back(&amp;20);</code></p>
+<h2 id="const-solution">Const solution</h2>
+<p>Well, to solve the above problem i as language Designer decided to give you a reference to the r-value but you have to promise me that you will not modify this variable by any means so i will allow this form of type to accept r-values</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb9-1" title="1"><span class="dt">void</span> push_back(<span class="at">const</span> <span class="dt">int</span>&amp; x);</a></code></pre></div>
+<p>Beside this i will allow you to write code that will be executed when a value being copied to override the default implementation</p>
+<p><strong>Note:</strong> C++ sets the assumption that in order to copy a value you can just copy it’s bytes as a binary data so if i need to copy a type i just copy <code>sizeof(type)</code> #bytes to another location in memory nothing special here</p>
+<p>So now you have two new toys to play with</p>
+<ul>
+<li>Copy Constructors</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb10-1" title="1">Type(<span class="at">const</span> Type&amp; other)</a>
+<a class="sourceLine" id="cb10-2" title="2">{</a>
+<a class="sourceLine" id="cb10-3" title="3">  <span class="co">//copy data here</span></a>
+<a class="sourceLine" id="cb10-4" title="4">}</a>
+<a class="sourceLine" id="cb10-5" title="5"></a>
+<a class="sourceLine" id="cb10-6" title="6"><span class="co">//can be called like this</span></a>
+<a class="sourceLine" id="cb10-7" title="7">Type x(y);</a></code></pre></div>
+<ul>
+<li>Copy assignment operator</li>
+</ul>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb11-1" title="1">Type&amp;</a>
+<a class="sourceLine" id="cb11-2" title="2"><span class="kw">operator</span>=(<span class="at">const</span> Type&amp; other)</a>
+<a class="sourceLine" id="cb11-3" title="3">{</a>
+<a class="sourceLine" id="cb11-4" title="4">  <span class="co">//copy data here</span></a>
+<a class="sourceLine" id="cb11-5" title="5">}</a>
+<a class="sourceLine" id="cb11-6" title="6"></a>
+<a class="sourceLine" id="cb11-7" title="7"><span class="co">//can be called like this</span></a>
+<a class="sourceLine" id="cb11-8" title="8">Type x;</a>
+<a class="sourceLine" id="cb11-9" title="9"><span class="co">//... do stuff</span></a>
+<a class="sourceLine" id="cb11-10" title="10">x = y;</a></code></pre></div>
+<p>Until now everything is fine. Enters C++11.</p>
+<p>C++11 has a feature that triggered the addition of move semantics</p>
+<h2 id="smart-pointers">Smart pointers</h2>
+<p>Specifically <code>unique_ptr</code> let’s implement it</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb12-2" title="2"><span class="kw">struct</span> unique_ptr</a>
+<a class="sourceLine" id="cb12-3" title="3">{</a>
+<a class="sourceLine" id="cb12-4" title="4">    T* _ptr;</a>
+<a class="sourceLine" id="cb12-5" title="5"></a>
+<a class="sourceLine" id="cb12-6" title="6">    unique_ptr()</a>
+<a class="sourceLine" id="cb12-7" title="7">        :_ptr(<span class="kw">nullptr</span>)</a>
+<a class="sourceLine" id="cb12-8" title="8">    {}</a>
+<a class="sourceLine" id="cb12-9" title="9"></a>
+<a class="sourceLine" id="cb12-10" title="10">    unique_ptr(T* ptr)</a>
+<a class="sourceLine" id="cb12-11" title="11">        :_ptr(ptr)</a>
+<a class="sourceLine" id="cb12-12" title="12">    {}</a>
+<a class="sourceLine" id="cb12-13" title="13"></a>
+<a class="sourceLine" id="cb12-14" title="14">    ~unique_ptr()</a>
+<a class="sourceLine" id="cb12-15" title="15">    {</a>
+<a class="sourceLine" id="cb12-16" title="16">        <span class="cf">if</span>(_ptr)</a>
+<a class="sourceLine" id="cb12-17" title="17">            <span class="kw">delete</span> _ptr;</a>
+<a class="sourceLine" id="cb12-18" title="18">    }</a>
+<a class="sourceLine" id="cb12-19" title="19"></a>
+<a class="sourceLine" id="cb12-20" title="20">    unique_ptr(<span class="at">const</span> unique_ptr&lt;T&gt;&amp; other)</a>
+<a class="sourceLine" id="cb12-21" title="21">    {</a>
+<a class="sourceLine" id="cb12-22" title="22">        <span class="co">//now what to write here ... !!!</span></a>
+<a class="sourceLine" id="cb12-23" title="23">    }</a>
+<a class="sourceLine" id="cb12-24" title="24"></a>
+<a class="sourceLine" id="cb12-25" title="25">    unqiue_ptr&lt;T&gt;&amp;</a>
+<a class="sourceLine" id="cb12-26" title="26">    <span class="kw">operator</span>=(<span class="at">const</span> unqiue_ptr&lt;T&gt;&amp; other)</a>
+<a class="sourceLine" id="cb12-27" title="27">    {</a>
+<a class="sourceLine" id="cb12-28" title="28">        <span class="co">//now what to write here ... !!!</span></a>
+<a class="sourceLine" id="cb12-29" title="29">    }</a>
+<a class="sourceLine" id="cb12-30" title="30">};</a></code></pre></div>
+<p>As you start implementing it you will face a problem how are you supposed to copy the unique_ptr? or if you supposed to copy it at all! But if you don’t copy it then how are you going to pass it around?!!</p>
+<p>The unique_ptr would be possible if we could write this copy constructor</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb13-1" title="1">unique_ptr(<span class="at">const</span> unique_ptr&lt;T&gt;&amp; other)</a>
+<a class="sourceLine" id="cb13-2" title="2">    :_ptr(other.ptr)</a>
+<a class="sourceLine" id="cb13-3" title="3">{</a>
+<a class="sourceLine" id="cb13-4" title="4">    other._ptr = <span class="kw">nullptr</span>; <span class="co">//but we can&#39;t since other is a const reference</span></a>
+<a class="sourceLine" id="cb13-5" title="5">}</a></code></pre></div>
+<p>But we can’t because other is passed as a <code>const reference</code> so to solve this we need the following new thing:</p>
+<ol type="1">
+<li>We need to be able to pass the value around efficiently</li>
+<li>We need it to also accept r-values</li>
+<li>We need to be able to edit it</li>
+</ol>
+<h2 id="universal-references">Universal References</h2>
+<p>Here enters universal references <code>&amp;&amp;</code> they accept r-values, pass value around efficiently, and they’re not <code>const</code> so you can edit them</p>
+<p><code>&amp;&amp;</code> indicates that you are moving the value thus you don’t care about it so i can write the following move constructor in our unique_ptr</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb14-1" title="1">unique_ptr(<span class="at">const</span> unique_ptr&lt;T&gt;&amp; other) = <span class="kw">delete</span>;</a>
+<a class="sourceLine" id="cb14-2" title="2"></a>
+<a class="sourceLine" id="cb14-3" title="3">unqiue_ptr&lt;T&gt;&amp;</a>
+<a class="sourceLine" id="cb14-4" title="4"><span class="kw">operator</span>=(<span class="at">const</span> unqiue_ptr&lt;T&gt;&amp; other) = <span class="kw">delete</span>;</a>
+<a class="sourceLine" id="cb14-5" title="5"></a>
+<a class="sourceLine" id="cb14-6" title="6">unique_ptr(unqiue_ptr&lt;T&gt;&amp;&amp; other)</a>
+<a class="sourceLine" id="cb14-7" title="7">    :_ptr(other._ptr)</a>
+<a class="sourceLine" id="cb14-8" title="8">{</a>
+<a class="sourceLine" id="cb14-9" title="9">    other._ptr = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb14-10" title="10">}</a>
+<a class="sourceLine" id="cb14-11" title="11"></a>
+<a class="sourceLine" id="cb14-12" title="12">unique_ptr&lt;T&gt;&amp;</a>
+<a class="sourceLine" id="cb14-13" title="13"><span class="kw">operator</span>=(unique_ptr&lt;T&gt;&amp;&amp; other)</a>
+<a class="sourceLine" id="cb14-14" title="14">{</a>
+<a class="sourceLine" id="cb14-15" title="15">    <span class="cf">if</span>(_ptr)</a>
+<a class="sourceLine" id="cb14-16" title="16">        <span class="kw">delete</span> _ptr;</a>
+<a class="sourceLine" id="cb14-17" title="17">    _ptr = other._ptr;</a>
+<a class="sourceLine" id="cb14-18" title="18">    other._ptr = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb14-19" title="19">}</a></code></pre></div>
+<p>Here i have deleted the copy semantic, also i have introduced move semantic that <strong>steals</strong> the pointer from the other pointer and sets its internal <code>_ptr</code> to <code>nullptr</code></p>
+<p>Notice that i just copy the <code>unique_ptr</code>:</p>
+<ul>
+<li>It’s no longer unique</li>
+<li>I end up with two variables pointing to the same memory, when one goes out of scope it will delete the memory and i will end up with a pointer to an invalid memory location furthermore if the second pointer attempts to destruct it will delete the pointer for the second time resulting an inevitable crash</li>
+</ul>
+<p>So move semantic is simply stealing the data then reseting it to a default state of some sort like <code>nullptr</code> for pointers … etc.</p>
+<h2 id="stdmove">std::move</h2>
+<p>So now i can write this code</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb15-1" title="1"><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></a>
+<a class="sourceLine" id="cb15-2" title="2"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb15-3" title="3">func(<span class="dt">int</span>&amp;&amp; x)</a>
+<a class="sourceLine" id="cb15-4" title="4">{</a>
+<a class="sourceLine" id="cb15-5" title="5">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;universal ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb15-6" title="6">}</a>
+<a class="sourceLine" id="cb15-7" title="7"></a>
+<a class="sourceLine" id="cb15-8" title="8"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb15-9" title="9">func(<span class="at">const</span> <span class="dt">int</span>&amp; x)</a>
+<a class="sourceLine" id="cb15-10" title="10">{</a>
+<a class="sourceLine" id="cb15-11" title="11">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;const ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb15-12" title="12">}</a>
+<a class="sourceLine" id="cb15-13" title="13"></a>
+<a class="sourceLine" id="cb15-14" title="14"><span class="dt">int</span> main()</a>
+<a class="sourceLine" id="cb15-15" title="15">{</a>
+<a class="sourceLine" id="cb15-16" title="16">    <span class="dt">int</span> x = <span class="dv">10</span>;</a>
+<a class="sourceLine" id="cb15-17" title="17">    func(x);</a>
+<a class="sourceLine" id="cb15-18" title="18">    func(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb15-19" title="19">    <span class="co">//func(x); i want to pass x to the &amp;&amp; func instead of const &amp; how would i do that</span></a>
+<a class="sourceLine" id="cb15-20" title="20">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb15-21" title="21">}</a></code></pre></div>
+<p>Output:</p>
+<pre><code>const ref
+universal ref</code></pre>
+<p>The problem here is that in the act of passing a variable to <code>func</code> and since it’s in the stack the compiler will pass it to the <code>const&amp;</code> function each time because the compiler thinks that since <code>x</code> is on the stack then we as programmers care about it. so the compiler needs to save its value for us. and passing it by &amp;&amp; may result the value of <code>x</code> being changed to maybe a non-valid value like <code>nullptr</code> and i we use it later it will crash because of <code>nullptr</code> dereference … of course x is an int here but imagine a complicated type.</p>
+<p>Now if i want to call the <code>&amp;&amp;</code> function i can do the following</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb17-1" title="1"><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></a>
+<a class="sourceLine" id="cb17-2" title="2"></a>
+<a class="sourceLine" id="cb17-3" title="3"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb17-4" title="4">func(<span class="dt">int</span>&amp;&amp; x)</a>
+<a class="sourceLine" id="cb17-5" title="5">{</a>
+<a class="sourceLine" id="cb17-6" title="6">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;universal ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb17-7" title="7">}</a>
+<a class="sourceLine" id="cb17-8" title="8"></a>
+<a class="sourceLine" id="cb17-9" title="9"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb17-10" title="10">func(<span class="at">const</span> <span class="dt">int</span>&amp; x)</a>
+<a class="sourceLine" id="cb17-11" title="11">{</a>
+<a class="sourceLine" id="cb17-12" title="12">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;const ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb17-13" title="13">}</a>
+<a class="sourceLine" id="cb17-14" title="14"></a>
+<a class="sourceLine" id="cb17-15" title="15"><span class="dt">int</span> main()</a>
+<a class="sourceLine" id="cb17-16" title="16">{</a>
+<a class="sourceLine" id="cb17-17" title="17">    <span class="dt">int</span> x = <span class="dv">10</span>;</a>
+<a class="sourceLine" id="cb17-18" title="18">    func(x);</a>
+<a class="sourceLine" id="cb17-19" title="19">    func(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb17-20" title="20">    <span class="co">//func(x); i want to pass x to the &amp;&amp; func instead of const &amp; how would i do that</span></a>
+<a class="sourceLine" id="cb17-21" title="21">    func(<span class="kw">static_cast</span>&lt;<span class="dt">int</span>&amp;&amp;&gt;(x));</a>
+<a class="sourceLine" id="cb17-22" title="22">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb17-23" title="23">}</a></code></pre></div>
+<p>Output:</p>
+<pre><code>const ref
+universal ref
+universal ref</code></pre>
+<p>A simple <code>static_cast</code> tells the compiler … hey listen i know what i’m doing just convert this x to <code>int&amp;&amp;</code> and move it</p>
+<p>Now let’s wrap the cast into a function for convenience and give it an appropriate name to express our intent</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb19-2" title="2"><span class="kw">struct</span> remove_reference</a>
+<a class="sourceLine" id="cb19-3" title="3">{ <span class="kw">typedef</span> T type; };</a>
+<a class="sourceLine" id="cb19-4" title="4"></a>
+<a class="sourceLine" id="cb19-5" title="5"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb19-6" title="6"><span class="kw">struct</span> remove_reference&lt;T&amp;&gt;</a>
+<a class="sourceLine" id="cb19-7" title="7">{ <span class="kw">typedef</span> T type; };</a>
+<a class="sourceLine" id="cb19-8" title="8"></a>
+<a class="sourceLine" id="cb19-9" title="9"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb19-10" title="10"><span class="kw">struct</span> remove_reference&lt;T&amp;&amp;&gt;</a>
+<a class="sourceLine" id="cb19-11" title="11">{ <span class="kw">typedef</span> T type; };</a>
+<a class="sourceLine" id="cb19-12" title="12"></a>
+<a class="sourceLine" id="cb19-13" title="13"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb19-14" title="14"><span class="kw">constexpr</span> <span class="kw">typename</span> remove_reference&lt;T&gt;::type&amp;&amp;</a>
+<a class="sourceLine" id="cb19-15" title="15">move(T&amp;&amp; value)</a>
+<a class="sourceLine" id="cb19-16" title="16">{</a>
+<a class="sourceLine" id="cb19-17" title="17">    <span class="cf">return</span> <span class="kw">static_cast</span>&lt;<span class="kw">typename</span> remove_reference&lt;T&gt;::type&amp;&amp;&gt;(value);</a>
+<a class="sourceLine" id="cb19-18" title="18">}</a></code></pre></div>
+<p>Here we just provided this simple utility that’s called <code>remove_reference</code> this simply takes a type <code>T</code> value, <code>T&amp;</code> reference, <code>T&amp;&amp;</code> universal reference and gives you back the type <code>T</code> … just ignore this if you aren’t aware of C++ template meta programming</p>
+<p>So the move function consists of a single line and it’s the same <code>static_cast</code> that we have written before … QED</p>
+<p><strong>Note</strong>: if you are aware of C++ templates stuff here are the collapsing rules for references</p>
+<blockquote>
+<p>Now, we have two kinds of references, where &amp;&amp; means “I don’t care about what may happen to the object”, and &amp; meaning “I may care about what may happen to the object, so you better watch what you’re doing”. With this in mind, the collapsing rules flow naturally: C++ should collapse referecnces to &amp;&amp; only if no one cares about what happens to the object:</p>
+<p>[&amp; &amp; -&gt; &amp;]</p>
+<p>[&amp; &amp;&amp; -&gt; &amp;]</p>
+<p>[&amp;&amp; &amp; -&gt; &amp;]</p>
+<p>[&amp;&amp; &amp;&amp; -&gt; &amp;&amp;]</p>
+</blockquote>
+<p>Simply think of the move function it’s a generic function that accepts any type <code>T</code> if i pass to it <code>T</code> by reference the type would look like this <code>move(T&amp; &amp;&amp; value)</code> and it will resolve to <code>move(T&amp;)</code> … etc.</p>
+<p>Finally this code</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><a class="sourceLine" id="cb20-1" title="1"><span class="pp">#include </span><span class="im">&lt;iostream&gt;</span></a>
+<a class="sourceLine" id="cb20-2" title="2"><span class="pp">#include </span><span class="im">&lt;utility&gt;</span></a>
+<a class="sourceLine" id="cb20-3" title="3"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb20-4" title="4">func(<span class="dt">int</span>&amp;&amp; x)</a>
+<a class="sourceLine" id="cb20-5" title="5">{</a>
+<a class="sourceLine" id="cb20-6" title="6">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;universal ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb20-7" title="7">}</a>
+<a class="sourceLine" id="cb20-8" title="8"></a>
+<a class="sourceLine" id="cb20-9" title="9"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb20-10" title="10">func(<span class="at">const</span> <span class="dt">int</span>&amp; x)</a>
+<a class="sourceLine" id="cb20-11" title="11">{</a>
+<a class="sourceLine" id="cb20-12" title="12">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;const ref&quot;</span> &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb20-13" title="13">}</a>
+<a class="sourceLine" id="cb20-14" title="14"></a>
+<a class="sourceLine" id="cb20-15" title="15"><span class="dt">int</span> main()</a>
+<a class="sourceLine" id="cb20-16" title="16">{</a>
+<a class="sourceLine" id="cb20-17" title="17">    <span class="dt">int</span> x = <span class="dv">10</span>;</a>
+<a class="sourceLine" id="cb20-18" title="18">    func(x);</a>
+<a class="sourceLine" id="cb20-19" title="19">    func(<span class="dv">10</span>);</a>
+<a class="sourceLine" id="cb20-20" title="20">    <span class="co">//func(x); i want to pass x to the &amp;&amp; func instead of const &amp; how would i do that</span></a>
+<a class="sourceLine" id="cb20-21" title="21">    func(<span class="kw">static_cast</span>&lt;<span class="dt">int</span>&amp;&amp;&gt;(x));</a>
+<a class="sourceLine" id="cb20-22" title="22">    func(<span class="bu">std::</span>move(x));</a>
+<a class="sourceLine" id="cb20-23" title="23">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb20-24" title="24">}</a></code></pre></div>
+<p>Output:</p>
+<pre><code>const ref
+universal ref
+universal ref
+universal ref</code></pre>
+</body>
+</html>

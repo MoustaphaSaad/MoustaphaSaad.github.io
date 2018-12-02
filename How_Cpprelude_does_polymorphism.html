@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>How Cpprelude does polymorphism</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="how-cpprelude-does-polymorphism">How Cpprelude does polymorphism</h1>
+<p>06, Jan, 2018</p>
+<p><em>C++</em> is an <em>OOP</em> language thus it implements <em>Polymorphism</em> using <em>Inheritance</em>. But the problem in doing so is that extending other types becomes intrusive to the type definition itself, and what about extending other already compiled library types?, or what about re-routing the behaviour to a non-type entity?. Well, all of these options become impossible unless you are willing to do many adapters. In this article we explore other solutions to this problem and introduce what <em>CPPrelude</em> does to achieve it.</p>
+<h2 id="type-systems">Type Systems</h2>
+<h3 id="introduction">Introduction</h3>
+<p>To a machine there are no types. Data is data. Types are language constructs to assist the programmer. But sooner or later the need will arise to write a generic function that could act upon many types or types that has a specific property or layout.</p>
+<h3 id="type-systems-options">Type Systems Options</h3>
+<p>Let us first talk about type systems to better understand the problem. Type systems can be vary along two axis orthogonally. The first axis: (dynamic, static), and the second axis: (strong, weak)</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"></th>
+<th style="text-align: center;">Strong</th>
+<th style="text-align: center;">Weak</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Static</strong></td>
+<td style="text-align: center;"><em>C++</em></td>
+<td style="text-align: center;"><em>C</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Dynamic</strong></td>
+<td style="text-align: center;"><em>Python</em></td>
+<td style="text-align: center;"><em>PHP</em></td>
+</tr>
+</tbody>
+</table>
+<p>Since <em>C++</em> is a strongly statically typed language it had to solve the problem with polymorphism, and it did that using two methods: (<em>Templates</em>, <em>Inheritance</em>). However templates were not an intended solution to the problem but then people shoehorned them as solution.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="at">static</span> usize</a>
+<a class="sourceLine" id="cb1-2" title="2">foo(?? writable)</a>
+<a class="sourceLine" id="cb1-3" title="3">{</a>
+<a class="sourceLine" id="cb1-4" title="4">    <span class="cf">return</span> writable-&gt;write(...);</a>
+<a class="sourceLine" id="cb1-5" title="5">}</a></code></pre></div>
+<ul>
+<li>The strongly statically typed language problem is the input type of function foo.</li>
+</ul>
+<p>What should you substitute the <strong>??</strong> with?. This is the problem. If you are using a dynamically typed language you wouldn’t need to specify the type in the first place.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">def</span> foo(writable):</a>
+<a class="sourceLine" id="cb2-2" title="2">    <span class="cf">return</span> writable.write(...)</a></code></pre></div>
+<ul>
+<li>A Dynamically typed language like python doesn’t specify the input type of function foo.</li>
+</ul>
+<p>You should realize by now that nobody actually needs inheritance. But everybody needs polymorphism and code reuse.</p>
+<h2 id="solutions">Solutions</h2>
+<h3 id="inheritance-solution">Inheritance Solution</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">struct</span> IWritable</a>
+<a class="sourceLine" id="cb3-2" title="2">{</a>
+<a class="sourceLine" id="cb3-3" title="3">    <span class="kw">virtual</span> usize write(<span class="at">const</span> slice&lt;byte&gt;&amp;) = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb3-4" title="4">};</a>
+<a class="sourceLine" id="cb3-5" title="5"></a>
+<a class="sourceLine" id="cb3-6" title="6"><span class="kw">struct</span> buffer: IWritable</a>
+<a class="sourceLine" id="cb3-7" title="7">{</a>
+<a class="sourceLine" id="cb3-8" title="8">    usize write(<span class="at">const</span> slice&lt;byte&gt;&amp;) <span class="kw">override</span>;</a>
+<a class="sourceLine" id="cb3-9" title="9">};</a>
+<a class="sourceLine" id="cb3-10" title="10"></a>
+<a class="sourceLine" id="cb3-11" title="11"><span class="at">static</span> usize</a>
+<a class="sourceLine" id="cb3-12" title="12">foo(IWritable *writable)</a>
+<a class="sourceLine" id="cb3-13" title="13">{</a>
+<a class="sourceLine" id="cb3-14" title="14">    <span class="cf">return</span> writable-&gt;write(...);</a>
+<a class="sourceLine" id="cb3-15" title="15">}</a></code></pre></div>
+<ul>
+<li>Inheritance way of achieving polymorphic use of function foo.</li>
+</ul>
+<p>The problem with inheritance solution is that it’s intrusive to the type and when you deal with an external/library type you don’t have the luxury of editing it.</p>
+<h3 id="template-solution">Template Solution</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">struct</span> buffer</a>
+<a class="sourceLine" id="cb4-2" title="2">{</a>
+<a class="sourceLine" id="cb4-3" title="3">    usize write(<span class="at">const</span> slice&lt;byte&gt;&amp;);</a>
+<a class="sourceLine" id="cb4-4" title="4">};</a>
+<a class="sourceLine" id="cb4-5" title="5"></a>
+<a class="sourceLine" id="cb4-6" title="6"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb4-7" title="7"><span class="at">static</span> usize</a>
+<a class="sourceLine" id="cb4-8" title="8">foo(T *writable)</a>
+<a class="sourceLine" id="cb4-9" title="9">{</a>
+<a class="sourceLine" id="cb4-10" title="10">    <span class="cf">return</span> writable-&gt;write(...);</a>
+<a class="sourceLine" id="cb4-11" title="11">}</a></code></pre></div>
+<ul>
+<li>Template/Generic way of achieving polymorphic use of function foo</li>
+</ul>
+<p>The problem with template solution is that it can and will accept any type you pass to the function thus acting as if it removed a big chunk of any decent type system features and in addition to that you get weird error messages.</p>
+<h3 id="go-and-rust-solution">Go and Rust Solution</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">type</span> IWritable <span class="kw">interface</span> {</a>
+<a class="sourceLine" id="cb5-2" title="2">    Write(slice) <span class="dt">int</span></a>
+<a class="sourceLine" id="cb5-3" title="3">}</a>
+<a class="sourceLine" id="cb5-4" title="4"></a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="kw">type</span> Buffer <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb5-6" title="6">}</a>
+<a class="sourceLine" id="cb5-7" title="7"></a>
+<a class="sourceLine" id="cb5-8" title="8"><span class="kw">func</span> (buf Buffer) Write() <span class="dt">int</span> {</a>
+<a class="sourceLine" id="cb5-9" title="9">    ...</a>
+<a class="sourceLine" id="cb5-10" title="10">}</a>
+<a class="sourceLine" id="cb5-11" title="11"></a>
+<a class="sourceLine" id="cb5-12" title="12"><span class="kw">func</span> foo(IWritable writable) <span class="dt">int</span></a>
+<a class="sourceLine" id="cb5-13" title="13">{</a>
+<a class="sourceLine" id="cb5-14" title="14">    <span class="kw">return</span> writable.Write(...)</a>
+<a class="sourceLine" id="cb5-15" title="15">}</a></code></pre></div>
+<ul>
+<li><em>Go</em> way of achieving polymorphic use of function foo</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">struct</span> Buffer;</a>
+<a class="sourceLine" id="cb6-2" title="2"></a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="kw">trait</span> IWritable <span class="op">{</span></a>
+<a class="sourceLine" id="cb6-4" title="4">    <span class="kw">fn</span> write(&amp;<span class="kw">self</span>, ...) -&gt; <span class="dt">usize</span>;</a>
+<a class="sourceLine" id="cb6-5" title="5"><span class="op">}</span></a>
+<a class="sourceLine" id="cb6-6" title="6"></a>
+<a class="sourceLine" id="cb6-7" title="7"><span class="kw">impl</span> IWritable <span class="kw">for</span> Buffer <span class="op">{</span></a>
+<a class="sourceLine" id="cb6-8" title="8">    <span class="kw">fn</span> write(&amp;<span class="kw">self</span>, ...) -&gt; <span class="dt">usize</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb6-9" title="9">        ...</a>
+<a class="sourceLine" id="cb6-10" title="10">    <span class="op">}</span></a>
+<a class="sourceLine" id="cb6-11" title="11"><span class="op">}</span></a>
+<a class="sourceLine" id="cb6-12" title="12"></a>
+<a class="sourceLine" id="cb6-13" title="13"><span class="kw">fn</span> foo(writer: &amp;<span class="kw">mut</span> IWritable) -&gt; <span class="dt">usize</span> <span class="op">{</span></a>
+<a class="sourceLine" id="cb6-14" title="14">    writer.write(...)</a>
+<a class="sourceLine" id="cb6-15" title="15"><span class="op">}</span></a></code></pre></div>
+<ul>
+<li><em>Rust</em> way of achieving polymorphic use of function foo</li>
+</ul>
+<p>Essentially Go and Rust solutions are the same. I actually like this solution. It separates your interface from the concrete types that implement this interface and since member functions could be added outside the type itself you can easily extend any type whether it’s a library type or internal type.</p>
+<h3 id="cpprelude-solution">CPPrelude Solution</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">struct</span> writable_trait</a>
+<a class="sourceLine" id="cb7-2" title="2">{</a>
+<a class="sourceLine" id="cb7-3" title="3">    <span class="kw">using</span> write_func = usize(*)(<span class="dt">void</span>*, <span class="at">const</span> slice&lt;byte&gt;&amp;);</a>
+<a class="sourceLine" id="cb7-4" title="4">    <span class="dt">void</span> *_self = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb7-5" title="5">    write_func _write = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb7-6" title="6">  </a>
+<a class="sourceLine" id="cb7-7" title="7">    usize</a>
+<a class="sourceLine" id="cb7-8" title="8">    write(<span class="at">const</span> slice&lt;byte&gt;&amp;)</a>
+<a class="sourceLine" id="cb7-9" title="9">    {</a>
+<a class="sourceLine" id="cb7-10" title="10">        <span class="cf">return</span> _write(_self, ...);</a>
+<a class="sourceLine" id="cb7-11" title="11">    }</a>
+<a class="sourceLine" id="cb7-12" title="12">};</a>
+<a class="sourceLine" id="cb7-13" title="13"></a>
+<a class="sourceLine" id="cb7-14" title="14"><span class="kw">struct</span> Buffer</a>
+<a class="sourceLine" id="cb7-15" title="15">{</a>
+<a class="sourceLine" id="cb7-16" title="16">    writable_trait _write_trait;</a>
+<a class="sourceLine" id="cb7-17" title="17">  </a>
+<a class="sourceLine" id="cb7-18" title="18">    <span class="at">static</span> usize</a>
+<a class="sourceLine" id="cb7-19" title="19">    _buffer_write(<span class="dt">void</span>* _self, <span class="at">const</span> slice&lt;byte&gt;&amp;)</a>
+<a class="sourceLine" id="cb7-20" title="20">    {</a>
+<a class="sourceLine" id="cb7-21" title="21">        ...;</a>
+<a class="sourceLine" id="cb7-22" title="22">    }</a>
+<a class="sourceLine" id="cb7-23" title="23">  </a>
+<a class="sourceLine" id="cb7-24" title="24">    Buffer()</a>
+<a class="sourceLine" id="cb7-25" title="25">    {</a>
+<a class="sourceLine" id="cb7-26" title="26">        _write_trait._self = <span class="kw">this</span>;</a>
+<a class="sourceLine" id="cb7-27" title="27">        _write_trait._write = &amp;Buffer::_buffer_write;</a>
+<a class="sourceLine" id="cb7-28" title="28">    }</a>
+<a class="sourceLine" id="cb7-29" title="29">  </a>
+<a class="sourceLine" id="cb7-30" title="30">    <span class="kw">inline</span> <span class="kw">operator</span> writable_trait*()</a>
+<a class="sourceLine" id="cb7-31" title="31">    {</a>
+<a class="sourceLine" id="cb7-32" title="32">        <span class="cf">return</span> &amp;_write_trait;</a>
+<a class="sourceLine" id="cb7-33" title="33">    }</a>
+<a class="sourceLine" id="cb7-34" title="34">    </a>
+<a class="sourceLine" id="cb7-35" title="35">    usize write(<span class="at">const</span> slice&lt;byte&gt;&amp;)</a>
+<a class="sourceLine" id="cb7-36" title="36">    {</a>
+<a class="sourceLine" id="cb7-37" title="37">        <span class="cf">return</span> _buffer_write(<span class="kw">this</span>, ...);</a>
+<a class="sourceLine" id="cb7-38" title="38">    }</a>
+<a class="sourceLine" id="cb7-39" title="39">};</a>
+<a class="sourceLine" id="cb7-40" title="40"></a>
+<a class="sourceLine" id="cb7-41" title="41">usize</a>
+<a class="sourceLine" id="cb7-42" title="42">foo(writable_trait* writable)</a>
+<a class="sourceLine" id="cb7-43" title="43">{</a>
+<a class="sourceLine" id="cb7-44" title="44">    <span class="cf">return</span> writable-&gt;write(...);</a>
+<a class="sourceLine" id="cb7-45" title="45">}</a></code></pre></div>
+<ul>
+<li><em>CPPrelude</em> way of achieving polymorphic use of function foo</li>
+</ul>
+<p>This way the anyone can extend the the trait for internal types and library types also you can provide the trait without associating it to any type at all as illustrated below.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb8-1" title="1"><span class="co">//dummy function that writes nothing</span></a>
+<a class="sourceLine" id="cb8-2" title="2">usize</a>
+<a class="sourceLine" id="cb8-3" title="3">my_null_writer(<span class="dt">void</span>*, <span class="at">const</span> slice&lt;byte&gt;&amp;)</a>
+<a class="sourceLine" id="cb8-4" title="4">{</a>
+<a class="sourceLine" id="cb8-5" title="5">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb8-6" title="6">}</a>
+<a class="sourceLine" id="cb8-7" title="7"></a>
+<a class="sourceLine" id="cb8-8" title="8"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb8-9" title="9"><span class="dt">without_type</span>()</a>
+<a class="sourceLine" id="cb8-10" title="10">{</a>
+<a class="sourceLine" id="cb8-11" title="11">    writable_trait dummy;</a>
+<a class="sourceLine" id="cb8-12" title="12">    dummy._write = my_null_writer;</a>
+<a class="sourceLine" id="cb8-13" title="13">    foo(&amp;dummy);</a>
+<a class="sourceLine" id="cb8-14" title="14">}</a>
+<a class="sourceLine" id="cb8-15" title="15"></a>
+<a class="sourceLine" id="cb8-16" title="16"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb8-17" title="17"><span class="dt">with_type</span>()</a>
+<a class="sourceLine" id="cb8-18" title="18">{</a>
+<a class="sourceLine" id="cb8-19" title="19">    Buffer buf;</a>
+<a class="sourceLine" id="cb8-20" title="20">    foo(buf);</a>
+<a class="sourceLine" id="cb8-21" title="21">}</a></code></pre></div>
+<ul>
+<li><em>CPPrelude</em> using function foo without any associated types</li>
+</ul>
+</body>
+</html>
