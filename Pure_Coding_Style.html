@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Pure Coding Style</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="pure-coding-style">Pure Coding Style</h1>
+<p>06, Dec, 2018</p>
+<p>Eight months ago i decided that i’ve had it with C++ complexity and “magic” so i went on a journey towards bringing back the joy of programming into my life. The plan is simple start from c and add complexity as needed.</p>
+<p>This series of documents tells the result that i’ve ended up with.</p>
+<h2 id="pure-world">Pure World</h2>
+<p>If you were paying attention in your theory of computation course you would know that a computer is a machine which has memory and able to inspect/change memory based on the values found inside the memory cells. This influenced my style a lot, the style should be as pure as the “theoretical” computer machine.</p>
+<h3 id="program">Program</h3>
+<p>The program consists of two main things:</p>
+<ul>
+<li>Data in the form of <code>struct</code>, <code>union</code>, <code>enum</code>, and other various types</li>
+<li>Code in the form of functions that operate on the data</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="co">//data</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">struct</span> Point</a>
+<a class="sourceLine" id="cb1-3" title="3">{</a>
+<a class="sourceLine" id="cb1-4" title="4">    <span class="dt">float</span> x, y;</a>
+<a class="sourceLine" id="cb1-5" title="5">};</a>
+<a class="sourceLine" id="cb1-6" title="6"></a>
+<a class="sourceLine" id="cb1-7" title="7"><span class="co">//code</span></a>
+<a class="sourceLine" id="cb1-8" title="8">Point</a>
+<a class="sourceLine" id="cb1-9" title="9">point_sub(<span class="at">const</span> Point&amp; a, <span class="at">const</span> Point&amp; b)</a>
+<a class="sourceLine" id="cb1-10" title="10">{</a>
+<a class="sourceLine" id="cb1-11" title="11">    <span class="cf">return</span> Point {</a>
+<a class="sourceLine" id="cb1-12" title="12">        a.x - b.x,</a>
+<a class="sourceLine" id="cb1-13" title="13">        a.y - b.y</a>
+<a class="sourceLine" id="cb1-14" title="14">    };</a>
+<a class="sourceLine" id="cb1-15" title="15">}</a></code></pre></div>
+<p>Data is just some bytes in the memory nothing less, nothing more. You can memcpy them around, write them to disk, send them over the network, etc…</p>
+<p>Code transforms the data from one form to another and it only operates on the given parameters no global state should be attached.</p>
+<h2 id="real-life-benchmark">Real-life benchmark</h2>
+<p>I wanted to compare the performance of the pure and simple coding style to the modern C++ coding style and it was shocked at how the performance and my enjoyment of programming could be This is the numbers from my pet compiler which does lexing, parsing, semantic analysis on 6500LoC file of go-like language</p>
+<ul>
+<li><p>Modern C++: This is just modern C++ containers, uniqure_ptr, and simple 1-level inheritance nothing crazy like shared_ptr, etc…</p>
+<pre><code>λ .\bin\x64\debug\scratch.exe
+count: 768 decls, time: 487.105569 ms
+
+λ .\bin\x64\release\scratch.exe
+count: 768 decls, time: 61.23689 ms</code></pre></li>
+<li><p>Pure Style</p>
+<pre><code>.\bin\x64\debug\scratch.exe
+count: 768 decls, time: 41.405712 ms
+
+.\bin\x64\release\scratch.exe
+count: 768 decls, time: 4.644 ms</code></pre></li>
+</ul>
+<h2 id="style">Style</h2>
+<p>What i settled on was C with the addition of four features from C++</p>
+<ul>
+<li>Namespaces mainly for organizing the code</li>
+<li>Function overloading for the rare cases of defining the same function/behavior for different types, but i tend to minimize the usage of overloading because they are confusing overall.</li>
+<li>Simple templates for things that’s as simple as the buf example above not meta-programming nonsense</li>
+<li>operator overloading where it’s convenient like adding <code>operator[]</code> for the buf above</li>
+</ul>
+<ol type="1">
+<li>Namespaces
+<ol type="1">
+<li>Code should always be placed in a namespace</li>
+<li>Namespace name should be as short as possible and all lowercase</li>
+<li><p>Nested namespaces should be written</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">namespace</span> ms::math</a>
+<a class="sourceLine" id="cb4-2" title="2">{</a>
+<a class="sourceLine" id="cb4-3" title="3">    <span class="co">//code</span></a>
+<a class="sourceLine" id="cb4-4" title="4">}</a></code></pre></div></li>
+<li><p>Bring only what you need inside a namespace</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">namespace</span> ms::math</a>
+<a class="sourceLine" id="cb5-2" title="2">{</a>
+<a class="sourceLine" id="cb5-3" title="3">    <span class="kw">using</span> <span class="bu">std::</span>cout; <span class="co">//to print maybe</span></a>
+<a class="sourceLine" id="cb5-4" title="4">}</a></code></pre></div></li>
+</ol></li>
+<li>Types
+<ol type="1">
+<li>Never use class, always use struct</li>
+<li>All types should be POD</li>
+<li>Add _ at the start of a variable to signal that this specific member is private i.e. <code>size_t _cap</code></li>
+<li>All types should follow this style <code>New_Point</code>,
+<ul>
+<li>start with upper case letter <code>Point</code> if a type consists of more than one word then the first letter of each word should be upper case and words should be separated with an <code>_</code></li>
+</ul></li>
+<li>Member fields should be snake case <code>member_field</code></li>
+<li>Never use member functions</li>
+</ol></li>
+<li>Functions
+<ol type="1">
+<li>Function name should be snake case <code>point_sub</code></li>
+<li>Functions that operates on a type should start with the type name <code>subject_sub-subject_verb</code>, this will allow you to write <code>subject_</code> and auto-complete your way around the API
+<ul>
+<li><code>file_open</code>: opens a file.</li>
+<li><code>file_close</code>: closes a file.</li>
+<li><code>file_cursor_move</code>: this function operates on a file, specifically the file cursor and it moves it.</li>
+</ul></li>
+<li>Functions that operates on a type should take an instance of that type be reference/value as the first parameter called self
+<ul>
+<li><code>buf_push(Buf&lt;T&gt;&amp; self, const T&amp; value)</code>: for example operates on a buf so it takes it as the first parameter</li>
+</ul></li>
+<li>Prefer a unique name for each function over function overloading, All of the following functions creates a new string but in a subtle different ways so they have different names
+<ul>
+<li><code>str_new</code>: creates a new empty string</li>
+<li><code>str_from_c</code>: creates a new string and copies the c string into it</li>
+<li><code>str_with_allocator</code>: creates a new empty string with custom allocator</li>
+</ul></li>
+</ol></li>
+</ol>
+<h2 id="example">Example</h2>
+<p>Let’s see a simple type which represents a buffer of data in memory to get the feel for the coding style</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb6-2" title="2"><span class="kw">struct</span> Buf</a>
+<a class="sourceLine" id="cb6-3" title="3">{</a>
+<a class="sourceLine" id="cb6-4" title="4">    Allocator allocator;</a>
+<a class="sourceLine" id="cb6-5" title="5">    T* ptr;</a>
+<a class="sourceLine" id="cb6-6" title="6">    <span class="dt">size_t</span> cap;</a>
+<a class="sourceLine" id="cb6-7" title="7">    <span class="dt">size_t</span> count;</a>
+<a class="sourceLine" id="cb6-8" title="8">};</a>
+<a class="sourceLine" id="cb6-9" title="9"></a>
+<a class="sourceLine" id="cb6-10" title="10"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb6-11" title="11"><span class="kw">inline</span> <span class="at">static</span> Buf&lt;T&gt;</a>
+<a class="sourceLine" id="cb6-12" title="12">buf_new()</a>
+<a class="sourceLine" id="cb6-13" title="13">{</a>
+<a class="sourceLine" id="cb6-14" title="14">    Buf&lt;T&gt; self{};  <span class="co">//the {} ensures that this variable is zero initialized</span></a>
+<a class="sourceLine" id="cb6-15" title="15">    self.allocator = global_allocator;</a>
+<a class="sourceLine" id="cb6-16" title="16">    <span class="cf">return</span> self;</a>
+<a class="sourceLine" id="cb6-17" title="17">}</a>
+<a class="sourceLine" id="cb6-18" title="18"></a>
+<a class="sourceLine" id="cb6-19" title="19"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb6-20" title="20"><span class="kw">inline</span> <span class="at">static</span> Buf&lt;T&gt;</a>
+<a class="sourceLine" id="cb6-21" title="21">buf_with_allocator(Allocator allocator)</a>
+<a class="sourceLine" id="cb6-22" title="22">{</a>
+<a class="sourceLine" id="cb6-23" title="23">    Buf&lt;T&gt; self{};</a>
+<a class="sourceLine" id="cb6-24" title="24">    self.allocator = allocator;</a>
+<a class="sourceLine" id="cb6-25" title="25">    <span class="cf">return</span> self;</a>
+<a class="sourceLine" id="cb6-26" title="26">}</a>
+<a class="sourceLine" id="cb6-27" title="27"></a>
+<a class="sourceLine" id="cb6-28" title="28"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb6-29" title="29"><span class="kw">inline</span> <span class="at">static</span> <span class="dt">void</span></a>
+<a class="sourceLine" id="cb6-30" title="30">buf_free(Buf&lt;T&gt;&amp; self)</a>
+<a class="sourceLine" id="cb6-31" title="31">{</a>
+<a class="sourceLine" id="cb6-32" title="32">    <span class="cf">if</span>(self.cap)</a>
+<a class="sourceLine" id="cb6-33" title="33">        free_from(self.allocator, Block{ self.ptr, self.cap * <span class="kw">sizeof</span>(T) });</a>
+<a class="sourceLine" id="cb6-34" title="34">    self.cap = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb6-35" title="35">    self.count = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb6-36" title="36">    self.ptr = <span class="kw">nullptr</span>;</a>
+<a class="sourceLine" id="cb6-37" title="37">}</a></code></pre></div>
+<p>So the usage would be as simple as this</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" title="1"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb7-2" title="2">foo()</a>
+<a class="sourceLine" id="cb7-3" title="3">{</a>
+<a class="sourceLine" id="cb7-4" title="4">    <span class="kw">auto</span> numbers = buf_new&lt;<span class="dt">int</span>&gt;();</a>
+<a class="sourceLine" id="cb7-5" title="5">    <span class="cf">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; <span class="dv">100</span>; ++i)</a>
+<a class="sourceLine" id="cb7-6" title="6">        buf_push(numbers, i);</a>
+<a class="sourceLine" id="cb7-7" title="7">    buf_free(numbers);</a>
+<a class="sourceLine" id="cb7-8" title="8">}</a></code></pre></div>
+</body>
+</html>

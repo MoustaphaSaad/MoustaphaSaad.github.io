@@ -1,0 +1,1 @@
+pandoc -s src\%1.md -o %1.html --metadata pagetitle=%2
