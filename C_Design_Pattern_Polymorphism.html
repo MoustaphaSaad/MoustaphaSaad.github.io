@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>C Design Patterns: Polymorphism</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="templates/bootstrap_css.template" />
+</head>
+<body>
+    <div class="container">
+    <div class="row">
+            <div class="span12">
+            <h1 id="c-design-pattern-polymorphism">C Design Pattern: Polymorphism</h1>
+<p>07, Dec, 2018</p>
+<p>Today we’ll show a pattern I’ve found to be useful in the “pure coding style” i’ve developed over the last eight months.</p>
+<h2 id="polymorphism">Polymorphism</h2>
+<p>If you come from an OOP world you’ll be conditioned to think that polymorphism and inheritance are intertwined. You use inheritance to get polymorphic types, but in reality you couldn’t be more wrong.</p>
+<blockquote>
+<p>I thought of objects being like biological cells and/or individual computers on a network, only able to communicate with messages (so messaging came at the very beginning – it took a while to see how to do messaging in a programming language efficiently enough to be useful). - Alan Kay</p>
+</blockquote>
+<p>As you can see that the corner stone of OOP is really the messaging system and that objects could in respond to the same messages with a somewhat similar behavior so these types of objects make a type group of some sort.</p>
+<blockquote>
+<p>The big idea is “messaging” [..]. The Japanese have a small word — ma — for “that which is in between” — perhaps the nearest English equivalent is “interstitial”. The key in making great and growable systems is much more to design how its modules communicate rather than what their internal properties and behaviors should be. - Alan Kay</p>
+</blockquote>
+<h2 id="c">C++</h2>
+<p>C++ interpreted the messages as “member functions” so you now define the object and the set of messages/functions it can receive and these messages tell the object to transform from a valid state to another valid state and you can only interact with objects through messages only to guarantee that objects will be in a valid state at any point in time, which is the whole premise of encapsulation really.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">class</span> Buf</a>
+<a class="sourceLine" id="cb1-3" title="3">{</a>
+<a class="sourceLine" id="cb1-4" title="4">    <span class="co">//encapsulated data which no-one can touch</span></a>
+<a class="sourceLine" id="cb1-5" title="5">    Allocator allocator;</a>
+<a class="sourceLine" id="cb1-6" title="6">    T* ptr;</a>
+<a class="sourceLine" id="cb1-7" title="7">    <span class="dt">size_t</span> cap;</a>
+<a class="sourceLine" id="cb1-8" title="8">    <span class="dt">size_t</span> count;</a>
+<a class="sourceLine" id="cb1-9" title="9"></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb1-11" title="11">    <span class="co">//public messages for the outside world</span></a>
+<a class="sourceLine" id="cb1-12" title="12">    <span class="dt">void</span></a>
+<a class="sourceLine" id="cb1-13" title="13">    push(<span class="at">const</span> T&amp; value)</a>
+<a class="sourceLine" id="cb1-14" title="14">    {</a>
+<a class="sourceLine" id="cb1-15" title="15">        ...</a>
+<a class="sourceLine" id="cb1-16" title="16">    }</a>
+<a class="sourceLine" id="cb1-17" title="17">};</a></code></pre></div>
+<h2 id="classic-oop-example">Classic OOP Example</h2>
+<p>Do you remember the classic shape oop example you would find in any OOP book? Let’s examine it.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">class</span> Rectangle</a>
+<a class="sourceLine" id="cb2-2" title="2">{</a>
+<a class="sourceLine" id="cb2-3" title="3">    <span class="dt">float</span> mWidth, mHeight;</a>
+<a class="sourceLine" id="cb2-4" title="4"></a>
+<a class="sourceLine" id="cb2-5" title="5"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb2-6" title="6">    Rectangle()</a>
+<a class="sourceLine" id="cb2-7" title="7">        :mWidth(<span class="fl">0.0</span><span class="bu">f</span>), mHeight(<span class="fl">0.0</span><span class="bu">f</span>)</a>
+<a class="sourceLine" id="cb2-8" title="8">    {}</a>
+<a class="sourceLine" id="cb2-9" title="9"></a>
+<a class="sourceLine" id="cb2-10" title="10">    Rectangle(<span class="dt">float</span> width, <span class="dt">float</span> height)</a>
+<a class="sourceLine" id="cb2-11" title="11">        :mWidth(width), mHeight(height)</a>
+<a class="sourceLine" id="cb2-12" title="12">    {}</a>
+<a class="sourceLine" id="cb2-13" title="13"></a>
+<a class="sourceLine" id="cb2-14" title="14">    <span class="co">//Note that Rectangle object responds to the area message</span></a>
+<a class="sourceLine" id="cb2-15" title="15">    <span class="dt">float</span></a>
+<a class="sourceLine" id="cb2-16" title="16">    area() <span class="at">const</span></a>
+<a class="sourceLine" id="cb2-17" title="17">    {</a>
+<a class="sourceLine" id="cb2-18" title="18">        <span class="cf">return</span> mWidth * mHeight;</a>
+<a class="sourceLine" id="cb2-19" title="19">    }</a>
+<a class="sourceLine" id="cb2-20" title="20">};</a>
+<a class="sourceLine" id="cb2-21" title="21"></a>
+<a class="sourceLine" id="cb2-22" title="22"><span class="kw">class</span> Circle</a>
+<a class="sourceLine" id="cb2-23" title="23">{</a>
+<a class="sourceLine" id="cb2-24" title="24">    <span class="dt">float</span> mRadius;</a>
+<a class="sourceLine" id="cb2-25" title="25"></a>
+<a class="sourceLine" id="cb2-26" title="26"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb2-27" title="27">    Circle()</a>
+<a class="sourceLine" id="cb2-28" title="28">        :mRadius(<span class="fl">0.0</span><span class="bu">f</span>)</a>
+<a class="sourceLine" id="cb2-29" title="29">    {}</a>
+<a class="sourceLine" id="cb2-30" title="30"></a>
+<a class="sourceLine" id="cb2-31" title="31">    Circle(<span class="dt">float</span> radius)</a>
+<a class="sourceLine" id="cb2-32" title="32">        :mRadius(radius)</a>
+<a class="sourceLine" id="cb2-33" title="33">    {}</a>
+<a class="sourceLine" id="cb2-34" title="34"></a>
+<a class="sourceLine" id="cb2-35" title="35">    <span class="co">//Note that Circle object responds to the area message also</span></a>
+<a class="sourceLine" id="cb2-36" title="36">    <span class="dt">float</span></a>
+<a class="sourceLine" id="cb2-37" title="37">    area() <span class="at">const</span></a>
+<a class="sourceLine" id="cb2-38" title="38">    {</a>
+<a class="sourceLine" id="cb2-39" title="39">        <span class="cf">return</span> PI * mRadius * mRadius;</a>
+<a class="sourceLine" id="cb2-40" title="40">    }</a>
+<a class="sourceLine" id="cb2-41" title="41">};</a></code></pre></div>
+<p>These two objects responds to the same “area” message so it’s only logical to group them in some type</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">class</span> Shape</a>
+<a class="sourceLine" id="cb3-2" title="2">{</a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb3-4" title="4">    vritual ~Shape() = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb3-5" title="5">    <span class="kw">virtual</span> <span class="dt">float</span> area() <span class="at">const</span> = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb3-6" title="6">};</a></code></pre></div>
+<p>Then you’d be able to use the types in this generic way</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" title="1"><span class="dt">void</span> print_area(<span class="at">const</span> Shape* shape)</a>
+<a class="sourceLine" id="cb4-2" title="2">{</a>
+<a class="sourceLine" id="cb4-3" title="3">    <span class="bu">std::</span>cout &lt;&lt; <span class="st">&quot;Area: &quot;</span> &lt;&lt; shape-&gt;area() &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb4-4" title="4">}</a></code></pre></div>
+<p>I have two problems with this style of code</p>
+<h3 id="focus">Focus</h3>
+<p>It puts the types at the focus of the code, which is evident in the way the code is written, If you want to change/add/remove a message to/from an object you’ll need to edit the types themselves. Which is quite not aligned with the spirit of OOP.</p>
+<p>In this regard i like the golang approach better.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">type</span> Rectangle <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb5-2" title="2">    Width, Height <span class="dt">float32</span></a>
+<a class="sourceLine" id="cb5-3" title="3">}</a>
+<a class="sourceLine" id="cb5-4" title="4"></a>
+<a class="sourceLine" id="cb5-5" title="5"><span class="kw">type</span> Circle <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb5-6" title="6">    Radius <span class="dt">float32</span></a>
+<a class="sourceLine" id="cb5-7" title="7">}</a>
+<a class="sourceLine" id="cb5-8" title="8"></a>
+<a class="sourceLine" id="cb5-9" title="9"><span class="kw">type</span> Shape <span class="kw">interface</span> {</a>
+<a class="sourceLine" id="cb5-10" title="10">    Area() <span class="dt">float32</span></a>
+<a class="sourceLine" id="cb5-11" title="11">}</a>
+<a class="sourceLine" id="cb5-12" title="12"></a>
+<a class="sourceLine" id="cb5-13" title="13"><span class="kw">func</span> (self Rectangle) area() <span class="dt">float32</span> {</a>
+<a class="sourceLine" id="cb5-14" title="14">    <span class="kw">return</span> self.Width * self.Height</a>
+<a class="sourceLine" id="cb5-15" title="15">}</a>
+<a class="sourceLine" id="cb5-16" title="16"></a>
+<a class="sourceLine" id="cb5-17" title="17"><span class="kw">func</span> (self Circle) area() <span class="dt">float32</span> {</a>
+<a class="sourceLine" id="cb5-18" title="18">    <span class="kw">return</span> PI * self.Radius * self.Radius</a>
+<a class="sourceLine" id="cb5-19" title="19">}</a></code></pre></div>
+<p>Golang style completely separates the messages from the objects/data and gives you the freedom to add/remove any message to any type without changing the type itself, which is much closer to the OOP spirit.</p>
+<h3 id="secerts">Secerts</h3>
+<p>The C++ style of the code like to keep secrets. Given a <code>Shape*</code> you wouldn’t be able to get the type of the object without trial and error through <code>dynamic_cast</code>, also this style of code in a non garbage collected language like C++ you would need to allocate the objects on the heap and since there’s a difference in the size of each object you won’t be able to allocate instances from a pool.</p>
+<h2 id="c-unions">C Unions</h2>
+<p>Let’s do the same shape example using what’s called tagged union pattern</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">struct</span> Shape</a>
+<a class="sourceLine" id="cb6-2" title="2">{</a>
+<a class="sourceLine" id="cb6-3" title="3">    <span class="co">//Shape kind to indicate the kind/type of this shape</span></a>
+<a class="sourceLine" id="cb6-4" title="4">    <span class="kw">enum</span> KIND</a>
+<a class="sourceLine" id="cb6-5" title="5">    {</a>
+<a class="sourceLine" id="cb6-6" title="6">        <span class="co">//I always start the kind with a KIND_NONE so that when i zero initialize the shape it defaults to an invalid shape</span></a>
+<a class="sourceLine" id="cb6-7" title="7">        KIND_NONE,</a>
+<a class="sourceLine" id="cb6-8" title="8">        KIND_RECTANGLE,</a>
+<a class="sourceLine" id="cb6-9" title="9">        KIND_CIRCLE</a>
+<a class="sourceLine" id="cb6-10" title="10">    };</a>
+<a class="sourceLine" id="cb6-11" title="11"></a>
+<a class="sourceLine" id="cb6-12" title="12">    <span class="co">//kind tag to identify which shape it is</span></a>
+<a class="sourceLine" id="cb6-13" title="13">    KIND kind;</a>
+<a class="sourceLine" id="cb6-14" title="14">    <span class="co">//anonymous union which will hold all the variants of the shapes</span></a>
+<a class="sourceLine" id="cb6-15" title="15">    <span class="kw">union</span></a>
+<a class="sourceLine" id="cb6-16" title="16">    {</a>
+<a class="sourceLine" id="cb6-17" title="17">        <span class="co">//anonymous struct to hold the data of the rectangle object</span></a>
+<a class="sourceLine" id="cb6-18" title="18">        <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb6-19" title="19">            <span class="dt">float</span> width, height;</a>
+<a class="sourceLine" id="cb6-20" title="20">        } rectangle;</a>
+<a class="sourceLine" id="cb6-21" title="21"></a>
+<a class="sourceLine" id="cb6-22" title="22">        <span class="co">//anonymous struct to hold the data of the circle object</span></a>
+<a class="sourceLine" id="cb6-23" title="23">        <span class="kw">struct</span> {</a>
+<a class="sourceLine" id="cb6-24" title="24">            <span class="dt">float</span> radius;</a>
+<a class="sourceLine" id="cb6-25" title="25">        } circle;</a>
+<a class="sourceLine" id="cb6-26" title="26">    };</a>
+<a class="sourceLine" id="cb6-27" title="27">};</a>
+<a class="sourceLine" id="cb6-28" title="28"></a>
+<a class="sourceLine" id="cb6-29" title="29"><span class="co">//function constructors</span></a>
+<a class="sourceLine" id="cb6-30" title="30">Shape</a>
+<a class="sourceLine" id="cb6-31" title="31">shape_rectangle(<span class="dt">float</span> width, <span class="dt">float</span> height)</a>
+<a class="sourceLine" id="cb6-32" title="32">{</a>
+<a class="sourceLine" id="cb6-33" title="33">    <span class="co">//i always start my values with {} to zero initialize them</span></a>
+<a class="sourceLine" id="cb6-34" title="34">    Shape self{};</a>
+<a class="sourceLine" id="cb6-35" title="35">    <span class="co">//init tag data</span></a>
+<a class="sourceLine" id="cb6-36" title="36">    self.kind = Shape::KIND_RECTANGLE;</a>
+<a class="sourceLine" id="cb6-37" title="37">    <span class="co">//init the specific object</span></a>
+<a class="sourceLine" id="cb6-38" title="38">    self.rectangle.width = width;</a>
+<a class="sourceLine" id="cb6-39" title="39">    self.rectangle.height = height;</a>
+<a class="sourceLine" id="cb6-40" title="40">    <span class="cf">return</span> self;</a>
+<a class="sourceLine" id="cb6-41" title="41">}</a>
+<a class="sourceLine" id="cb6-42" title="42"></a>
+<a class="sourceLine" id="cb6-43" title="43">Shape</a>
+<a class="sourceLine" id="cb6-44" title="44">shape_circle(<span class="dt">float</span> radius)</a>
+<a class="sourceLine" id="cb6-45" title="45">{</a>
+<a class="sourceLine" id="cb6-46" title="46">    Shape self{};</a>
+<a class="sourceLine" id="cb6-47" title="47">    self.kind = Shape::KIND_CIRCLE;</a>
+<a class="sourceLine" id="cb6-48" title="48">    self.circle.radius = radius;</a>
+<a class="sourceLine" id="cb6-49" title="49">    <span class="cf">return</span> self;</a>
+<a class="sourceLine" id="cb6-50" title="50">}</a>
+<a class="sourceLine" id="cb6-51" title="51"></a>
+<a class="sourceLine" id="cb6-52" title="52"><span class="dt">float</span></a>
+<a class="sourceLine" id="cb6-53" title="53">shape_area(<span class="at">const</span> Shape&amp; self)</a>
+<a class="sourceLine" id="cb6-54" title="54">{</a>
+<a class="sourceLine" id="cb6-55" title="55">    <span class="co">//now any function can switch on the kind of the shape</span></a>
+<a class="sourceLine" id="cb6-56" title="56">    <span class="cf">switch</span>(self.kind)</a>
+<a class="sourceLine" id="cb6-57" title="57">    {</a>
+<a class="sourceLine" id="cb6-58" title="58">        <span class="cf">case</span> Shape::KIND_RECTANGLE:</a>
+<a class="sourceLine" id="cb6-59" title="59">            <span class="cf">return</span> self.rectangle.width * self.rectangle.height;</a>
+<a class="sourceLine" id="cb6-60" title="60"></a>
+<a class="sourceLine" id="cb6-61" title="61">        <span class="cf">case</span> Shape::KIND_CIRCLE:</a>
+<a class="sourceLine" id="cb6-62" title="62">            <span class="cf">return</span> PI * self.circle.radius * self.circle.radius;</a>
+<a class="sourceLine" id="cb6-63" title="63"></a>
+<a class="sourceLine" id="cb6-64" title="64">        <span class="co">//i always assert on the default case because theoretically this case should be unreachable</span></a>
+<a class="sourceLine" id="cb6-65" title="65">        <span class="co">//but it can be reached if i added another type later to the shape struct so the assert will</span></a>
+<a class="sourceLine" id="cb6-66" title="66">        <span class="co">//act as a runtime error to tell me to not forget to handle the new type in this function also</span></a>
+<a class="sourceLine" id="cb6-67" title="67">        <span class="cf">default</span>:</a>
+<a class="sourceLine" id="cb6-68" title="68">            <span class="ot">assert</span>(<span class="kw">false</span> &amp;&amp; <span class="st">&quot;UNREACHABLE&quot;</span>);</a>
+<a class="sourceLine" id="cb6-69" title="69">            <span class="cf">return</span> <span class="fl">0.0</span><span class="bu">f</span>;</a>
+<a class="sourceLine" id="cb6-70" title="70">    }</a>
+<a class="sourceLine" id="cb6-71" title="71">}</a></code></pre></div>
+<p>I came to prefer this style because it doesn’t contain secrets at all you can inspect the shape type, create the shape on the stack, and make a shapes object pool since all the shapes has the same memory size.</p>
+<h2 id="function-overloading">Function Overloading</h2>
+<p>Another simple technique to add to your toolbox regarding polymorphism is the function overloading polymorphism style which the <code>std::cout</code> uses to extend it’s printing capability</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">struct</span> Rectangle</a>
+<a class="sourceLine" id="cb7-2" title="2">{</a>
+<a class="sourceLine" id="cb7-3" title="3">    <span class="dt">float</span> width, height;</a>
+<a class="sourceLine" id="cb7-4" title="4">};</a>
+<a class="sourceLine" id="cb7-5" title="5"></a>
+<a class="sourceLine" id="cb7-6" title="6"><span class="dt">float</span></a>
+<a class="sourceLine" id="cb7-7" title="7">area(<span class="at">const</span> Rectangle&amp; self)</a>
+<a class="sourceLine" id="cb7-8" title="8">{</a>
+<a class="sourceLine" id="cb7-9" title="9">    <span class="cf">return</span> self.width * self.height;</a>
+<a class="sourceLine" id="cb7-10" title="10">}</a>
+<a class="sourceLine" id="cb7-11" title="11"></a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="kw">struct</span> Circle</a>
+<a class="sourceLine" id="cb7-13" title="13">{</a>
+<a class="sourceLine" id="cb7-14" title="14">    <span class="dt">float</span> radius;</a>
+<a class="sourceLine" id="cb7-15" title="15">}</a>
+<a class="sourceLine" id="cb7-16" title="16"></a>
+<a class="sourceLine" id="cb7-17" title="17"><span class="dt">float</span></a>
+<a class="sourceLine" id="cb7-18" title="18">area(<span class="at">const</span> Circle&amp; self)</a>
+<a class="sourceLine" id="cb7-19" title="19">{</a>
+<a class="sourceLine" id="cb7-20" title="20">    <span class="cf">return</span> PI * self.radius * self.radius;</a>
+<a class="sourceLine" id="cb7-21" title="21">}</a>
+<a class="sourceLine" id="cb7-22" title="22"></a>
+<a class="sourceLine" id="cb7-23" title="23"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;</a>
+<a class="sourceLine" id="cb7-24" title="24"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb7-25" title="25">print_area(<span class="at">const</span> T&amp; shape)</a>
+<a class="sourceLine" id="cb7-26" title="26">{</a>
+<a class="sourceLine" id="cb7-27" title="27">    <span class="bu">std::</span>cout &lt;&lt; area(shape) &lt;&lt; <span class="bu">std::</span>endl;</a>
+<a class="sourceLine" id="cb7-28" title="28">}</a></code></pre></div>
+<p>I’ve had some troubles with this kind of polymorphism regarding type checking and bad error messages since it uses templates. Another issue is that templates adds a lot of overhead in compile times.</p>
+            </div>
+    </div>
+  </div>
+</body>
+</html>

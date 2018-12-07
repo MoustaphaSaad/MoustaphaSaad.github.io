@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Cpprelude</title>
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
+  <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
@@ -74,12 +69,13 @@ code span.va { color: #19177c; } /* Variable */
 code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+  <link rel="stylesheet" href="templates/bootstrap_css.template" />
 </head>
 <body>
-<h1 id="cpprelude">CPPrelude</h1>
+    <div class="container">
+    <div class="row">
+            <div class="span12">
+            <h1 id="cpprelude">CPPrelude</h1>
 <p>Hello,</p>
 <p>Two months ago I was frustrated by Microsoft’s implmentation of the C++ STL mainly because in debug mode it’s unusable. Try it yourself if your program uses STL containers heavily your debug mode will be slow as hell. you won’t be able to use it.</p>
 <p>I encountered this problem two times in real world. and those two instances were not just me caring about performance but I literally was not able to use my program in debug mode nor i was able to perform simple debugging simply because a step of my program was taking about 5 minutes to execute. and the second time was at work we were not able to debug a certain area of the program because it took about 20 minutes to execute. this problem is not helped by the fact that MSVC compiler is terrible at optimizations even in release. I tried to compile same code using MSVC/clang/g++ all running on the same machine and OS and every time MSVC was the worst.</p>
@@ -193,5 +189,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 </tbody>
 </table>
+            </div>
+    </div>
+  </div>
 </body>
 </html>

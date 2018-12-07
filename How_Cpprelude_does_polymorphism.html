@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>How Cpprelude does polymorphism</title>
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
+  <title>How Cpprelude does polymorhpism</title>
+  <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 a.sourceLine { display: inline-block; line-height: 1.25; }
 a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
@@ -74,12 +69,13 @@ code span.va { color: #19177c; } /* Variable */
 code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+  <link rel="stylesheet" href="templates/bootstrap_css.template" />
 </head>
 <body>
-<h1 id="how-cpprelude-does-polymorphism">How Cpprelude does polymorphism</h1>
+    <div class="container">
+    <div class="row">
+            <div class="span12">
+            <h1 id="how-cpprelude-does-polymorphism">How Cpprelude does polymorphism</h1>
 <p>06, Jan, 2018</p>
 <p><em>C++</em> is an <em>OOP</em> language thus it implements <em>Polymorphism</em> using <em>Inheritance</em>. But the problem in doing so is that extending other types becomes intrusive to the type definition itself, and what about extending other already compiled library types?, or what about re-routing the behaviour to a non-type entity?. Well, all of these options become impossible unless you are willing to do many adapters. In this article we explore other solutions to this problem and introduce what <em>CPPrelude</em> does to achieve it.</p>
 <h2 id="type-systems">Type Systems</h2>
@@ -273,5 +269,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li><em>CPPrelude</em> using function foo without any associated types</li>
 </ul>
+            </div>
+    </div>
+  </div>
 </body>
 </html>
