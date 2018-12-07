@@ -1,1 +1,1 @@
-pandoc -s src\index.md -o index.html --metadata pagetitle="Moustapha Saad Blog" --template=templates/bootstrap_html.template --css=templates/bootstrap_css.template
+pandoc -s src\index.md -o index.html --metadata pagetitle="Moustapha Saad Blog" --template=templates/template.html --css=templates/template.css
