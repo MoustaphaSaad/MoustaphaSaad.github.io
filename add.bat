@@ -1,1 +1,1 @@
-pandoc -s src\%1.md -o %1.html --metadata pagetitle=%2 --template=templates/template.html --css=templates/template.css
+pandoc -s src\%1.md -o %1.html --metadata pagetitle=%2 --template=templates/template.html --css=templates/template.css --toc

@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Cypher Assembler - Adventure 1</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="templates/template.css" />
+</head>
+<body>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+        <ul>
+          <li class="nav-header">Table of Contents</li>
+        </ul>
+        <ul>
+        <li><a href="#cypher-assembler">Cypher Assembler</a><ul>
+        <li><a href="#virtual-machine">Virtual Machine</a></li>
+        <li><a href="#sage-vm">Sage VM</a></li>
+        <li><a href="#cypher-assembler-1">Cypher Assembler</a><ul>
+        <li><a href="#simplist-program">Simplist Program</a></li>
+        <li><a href="#mov-program">Mov Program</a></li>
+        <li><a href="#add-program">Add Program</a></li>
+        <li><a href="#sum-program">Sum Program</a></li>
+        <li><a href="#cypher-instructions-listing">Cypher Instructions Listing</a></li>
+        <li><a href="#recursive-fibonacci">Recursive Fibonacci</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="#conculsion">Conculsion</a></li>
+        </ul></li>
+        </ul></li>
+        </ul>
+        </div>
+      </div>
+            <div class="span9">
+            <h1 id="cypher-assembler">Cypher Assembler</h1>
+<p>In my spare time i created a virtual machine -as always- but this time i decieded to create an assembler for it since it’s much easier than creating a full programming language and here’s my report.</p>
+<h2 id="virtual-machine">Virtual Machine</h2>
+<p>I’ve witnessed many programming being scared by the term virtual machine but in reality a virtual machine is a piece of code where it can read instructions in some form and execute some code in response to each instruction so a minimal virtual machine would look like this</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="co">//this a listing of all the instructions a vm can do</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="kw">enum</span> ISA: <span class="dt">uint8_t</span></a>
+<a class="sourceLine" id="cb1-3" title="3">{</a>
+<a class="sourceLine" id="cb1-4" title="4">    STOP,</a>
+<a class="sourceLine" id="cb1-5" title="5">    PRINT_HELLO_WORLD,</a>
+<a class="sourceLine" id="cb1-6" title="6">    ADD,</a>
+<a class="sourceLine" id="cb1-7" title="7">    ...</a>
+<a class="sourceLine" id="cb1-8" title="8">};</a>
+<a class="sourceLine" id="cb1-9" title="9"></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="co">//a program is just a byte buffer loaded in memory</span></a>
+<a class="sourceLine" id="cb1-11" title="11"><span class="kw">using</span> Program = Buf&lt;<span class="dt">uint8_t</span>&gt;;</a>
+<a class="sourceLine" id="cb1-12" title="12"></a>
+<a class="sourceLine" id="cb1-13" title="13"><span class="co">//this struct holds the VM state</span></a>
+<a class="sourceLine" id="cb1-14" title="14"><span class="kw">struct</span> VM { <span class="dt">size_t</span> program_counter; }</a>
+<a class="sourceLine" id="cb1-15" title="15"></a>
+<a class="sourceLine" id="cb1-16" title="16"><span class="co">//opcode decode function</span></a>
+<a class="sourceLine" id="cb1-17" title="17"><span class="co">//which is reponsible of decoding a single/multiple bytes from the program buffer into an ISA instruction</span></a>
+<a class="sourceLine" id="cb1-18" title="18">ISA</a>
+<a class="sourceLine" id="cb1-19" title="19">vm_opcode(VM&amp; vm, Program&amp; program)</a>
+<a class="sourceLine" id="cb1-20" title="20">{</a>
+<a class="sourceLine" id="cb1-21" title="21">    ISA opcode = ISA(program[vm.program_counter++]);</a>
+<a class="sourceLine" id="cb1-22" title="22">    <span class="co">//add all the checks for validation here</span></a>
+<a class="sourceLine" id="cb1-23" title="23">    <span class="cf">return</span> opcode;</a>
+<a class="sourceLine" id="cb1-24" title="24">}</a>
+<a class="sourceLine" id="cb1-25" title="25"></a>
+<a class="sourceLine" id="cb1-26" title="26"><span class="co">//function which decodes and executes a single instruction and returns whether we should continue</span></a>
+<a class="sourceLine" id="cb1-27" title="27"><span class="dt">bool</span></a>
+<a class="sourceLine" id="cb1-28" title="28">vm_execute_instruction(VM&amp; vm, Program&amp; program)</a>
+<a class="sourceLine" id="cb1-29" title="29">{</a>
+<a class="sourceLine" id="cb1-30" title="30">    <span class="cf">switch</span>(vm_opcode(vm, program))</a>
+<a class="sourceLine" id="cb1-31" title="31">    {</a>
+<a class="sourceLine" id="cb1-32" title="32">        <span class="cf">case</span> ISA::STOP: <span class="cf">return</span> <span class="kw">false</span>;</a>
+<a class="sourceLine" id="cb1-33" title="33">        <span class="cf">case</span> ISA::PRINT_HELLO_WORLD: printfmt(<span class="st">&quot;Hello, World!</span><span class="sc">\n</span><span class="st">&quot;</span>); <span class="cf">return</span> <span class="kw">true</span>;</a>
+<a class="sourceLine" id="cb1-34" title="34">        <span class="cf">case</span> ISA::ADD: ...</a>
+<a class="sourceLine" id="cb1-35" title="35">        ...</a>
+<a class="sourceLine" id="cb1-36" title="36">        <span class="cf">default</span>:</a>
+<a class="sourceLine" id="cb1-37" title="37">            <span class="ot">assert</span>(<span class="kw">false</span> &amp;&amp; <span class="st">&quot;ILLEGAL INSTRUCTION&quot;</span>);</a>
+<a class="sourceLine" id="cb1-38" title="38">            <span class="cf">return</span> <span class="kw">false</span>;</a>
+<a class="sourceLine" id="cb1-39" title="39">    }</a>
+<a class="sourceLine" id="cb1-40" title="40">}</a>
+<a class="sourceLine" id="cb1-41" title="41"></a>
+<a class="sourceLine" id="cb1-42" title="42"><span class="co">//function which runs the entire program</span></a>
+<a class="sourceLine" id="cb1-43" title="43"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb1-44" title="44">vm_run(VM&amp; vm, Program&amp; program)</a>
+<a class="sourceLine" id="cb1-45" title="45">{</a>
+<a class="sourceLine" id="cb1-46" title="46">    <span class="co">//while we should continue we will execute instructions</span></a>
+<a class="sourceLine" id="cb1-47" title="47">    <span class="cf">while</span>(vm_execute_instruction(vm, program));</a>
+<a class="sourceLine" id="cb1-48" title="48">}</a></code></pre></div>
+<p>That’s it, all you need to do now is just design your instruction set and make sure the vm executes them efficiently so as you can see there’s nothing to be scared of here and it’s quite fun to do virtual machines.</p>
+<h2 id="sage-vm">Sage VM</h2>
+<p>Sage VM is a general purpose register-based virtual machine which has the following registers:</p>
+<ul>
+<li>rpc: program counter</li>
+<li>rflg: various flags for compare, … etc.</li>
+<li>rem: remainder register where the remainder of a div instruction lives</li>
+<li>rstk: stack pointer</li>
+<li>r0 … r15: general purpose registers</li>
+</ul>
+<p>All of these registers are 64-bit wide, and by default Sage VM gives each program a 1MB of stack memory.</p>
+<p>Sage VM instructions are 32-bit wide/aligned which means they have 4 forms</p>
+<ol type="1">
+<li>[opcode(8-bit)]</li>
+<li>[opcode(8-bit), operand(24-bit)]</li>
+<li>[opcode(8-bit), operand(8-bit), operand(16-bit)]</li>
+<li>[opcode(8-bit), operand(8-bit), operand(8-bit), operand(8-bit)]</li>
+</ol>
+<h2 id="cypher-assembler-1">Cypher Assembler</h2>
+<p>As we have stated above our programs are just binary blobs that we decode and execute. It’s inconvenient to write binary code by hand so the logical step is to write instructions in text format and create a program which converts this texture form of instructions into a binary format the VM can handle a.k.a. and Assembler.</p>
+<h3 id="simplist-program">Simplist Program</h3>
+<pre class="x86"><code>;comments start with a semicolon
+;all the code should be enclosed into procedures
+
+;you must have at least a main proc in which the program starts
+proc main
+    hlt ;this stops the execution of the program
+end</code></pre>
+<p>The above program creates a simple main procedure and <code>hlt</code> stops the program execution immediately.</p>
+<h3 id="mov-program">Mov Program</h3>
+<pre class="x86"><code>proc main
+    i32 r0; declares the usage of register r0 as a signed 32-bit integer register
+    mov r0 5 ;r0 = 5
+    i32 r1
+    mov r1 r0 ; r1 = r0
+    hlt
+end</code></pre>
+<p>Cypher language is a strongly typed assembler language so you have to specify the type of the register before you use it there’s eight type of the registers right now</p>
+<ul>
+<li>i8: integer 8-bit</li>
+<li>i16: integer 16-bit</li>
+<li>i32: integer 32-bit</li>
+<li>i64: integer 64-bit</li>
+<li>u8: unsigned integer 8-bit</li>
+<li>u16: unsigned integer 16-bit</li>
+<li>u32: unsigned integer 32-bit</li>
+<li>u64: unsigned integer 64-bit</li>
+</ul>
+<p>Some assembler languages bind the types of the data to the instructions for example x86 assembler language has a <code>div</code> instruction for the unsigned division and <code>sdiv</code> for signed division. But in Cypher language we bind the type of the data to the registers and the assembler will figure out the correct instruction based on the type annotations you provide like <code>i32 r0</code> which means that register <code>r0</code> is a signed 32-bit integer.</p>
+<p>Those type annotations has no effect on the VM which means that VM registers has no encoded types at all. Type annotations are only used by the assembler to generate helpful error messages and correctly choose the right instruction.</p>
+<h3 id="add-program">Add Program</h3>
+<pre class="x86"><code>proc main
+    i32 r0
+    i32 r1
+    i32 r2
+    mov r0 1
+    mov r1 2
+    add r0 r1 r2; r2 = r0 + r1
+    add r2 r2 r2; r2 = r2 + r2
+    div r2 r1 r0; r0 = r2 / r1
+    i32 rem; declare the type of the remainder before using it
+    i32 r3
+    mov r3 rem; move the remainder to r3 register
+    hlt
+end</code></pre>
+<p>The Arithmetic instructions take three registers which are all registers <code>add operand1 operand2 destenation</code></p>
+<p>There are the four basic arithmetic instructions: <code>add</code>, <code>sub</code>, <code>mul</code>, <code>div</code></p>
+<h3 id="sum-program">Sum Program</h3>
+<pre class="x86"><code>; sum function which sums the numbers from 0 to whatever the value of r0 is
+proc sum
+    u64 r0; first and only arg, and used as accumulator later
+    u64 r1; loop limit
+    u64 r2; loop counter
+
+    mov r1 r0; set the loop limit to the r0 arg
+    mov r0 0; sets the accumulator to 0
+    mov r2 0; sets the loop counter to 0
+
+; this is a label which gives the next instruction a human readable name instead of using the address
+LOOP:
+    ltq r2 r1; less than or equal (r2 &lt;= r1)
+    jf LOOP_EXIT; jump if the last comparison is false to exit the loop
+    add r0 r2 r0; loop body (r0 = r2 + r0)
+    inc r2; inc loop counter (r2++)
+    jmp LOOP; jump back to the start of the loop
+
+LOOP_EXIT:
+    ret; return from the function
+end
+
+proc main
+    u64 r0
+    mov r0 1000000
+    call sum ;simple call instruction
+    hlt ;stop the program
+end</code></pre>
+<p>As you can see this is a more complex program so i will provide the equavilant C program to help us understand how things map from C to the Cypher language.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb6-1" title="1"><span class="dt">uint64_t</span> sum(<span class="dt">uint64_t</span> n)</a>
+<a class="sourceLine" id="cb6-2" title="2">{</a>
+<a class="sourceLine" id="cb6-3" title="3">    <span class="dt">uint64_t</span> accumulator = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb6-4" title="4">    <span class="cf">for</span>(<span class="dt">uint64_t</span> i = <span class="dv">0</span>; i &lt;= n; ++i)</a>
+<a class="sourceLine" id="cb6-5" title="5">        accumulator += i;</a>
+<a class="sourceLine" id="cb6-6" title="6">    <span class="cf">return</span> accumulator;</a>
+<a class="sourceLine" id="cb6-7" title="7">}</a>
+<a class="sourceLine" id="cb6-8" title="8"></a>
+<a class="sourceLine" id="cb6-9" title="9"><span class="dt">int</span> main()</a>
+<a class="sourceLine" id="cb6-10" title="10">{</a>
+<a class="sourceLine" id="cb6-11" title="11">    sum(<span class="dv">1000000</span>);</a>
+<a class="sourceLine" id="cb6-12" title="12">    <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb6-13" title="13">}</a></code></pre></div>
+<h3 id="cypher-instructions-listing">Cypher Instructions Listing</h3>
+<ul>
+<li><code>mov</code>: <code>mov target source</code> moves a value from source to target, targets can only be registers and sources can be registers or immediate values</li>
+<li><code>add</code>: <code>add operand1 operand2 destination</code> adds two operand registers together and puts the result into the destination register</li>
+<li><code>sub</code>: <code>sub operand1 operand2 destination</code> subtracts two operand registers together and puts the result into the destination register</li>
+<li><code>mul</code>: <code>mul operand1 operand2 destination</code> multiplies two operand registers together and puts the result into the destination register</li>
+<li><code>div</code>: <code>div operand1 operand2 destination</code> divides two operand registers together and puts the result into the destination register</li>
+<li><code>inc</code>: <code>inc register</code> increments the value in register</li>
+<li><code>dec</code>: <code>dec register</code> decrements the value in register</li>
+<li><code>eq</code>: <code>eq register1 register2</code> compares <code>1 == 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>neq</code>: <code>neq register1 register2</code> compares <code>1 != 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>lt</code>: <code>lt register1 register2</code> compares <code>1 &lt; 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>gt</code>: <code>gt register1 register2</code> compares <code>1 &gt; 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>ltq</code>: <code>ltq register1 register2</code> compares <code>1 &lt;= 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>gtq</code>: <code>gtq register1 register2</code> compares <code>1 &gt;= 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>gtq</code>: <code>gtq register1 register2</code> compares <code>1 &gt;= 2</code> two registers and puts the result in <code>rflg</code></li>
+<li><code>jmp</code>: <code>jmp label/register</code> jumps unconditionally to the speicifed address</li>
+<li><code>jt</code>: <code>jt label/register</code> jumps if <code>rflg</code> is true to the speicifed address</li>
+<li><code>jf</code>: <code>jf label/register</code> jumps if <code>rflg</code> is false to the speicifed address</li>
+<li><code>store</code>: <code>store address-register value-register</code> stores the value register at the address specified by the address register for now the only type of memory available is stack memory (the width/size is specified by the type of value-register)</li>
+<li><code>load</code>: <code>load address-register target-register</code> loads a value from the address specified by the address register into the target register (the width/size is specified by the type of value-register)</li>
+<li><code>push</code>: <code>push register</code> pushes a register onto the stack and moves the stack pointer <code>rstk</code> (the width/size is specified by the type of value-register)</li>
+<li><code>pop</code>: <code>pop register</code> pops a register off the stack and moves the stack pointer <code>rstk</code> (the width/size is specified by the type of value-register)</li>
+<li><code>call</code>: <code>call procedure-name</code> performs a call to the speicified procedure</li>
+<li><code>ret</code>: <code>ret</code> returns from the current procedure</li>
+<li><code>i8</code>: <code>i8 register</code> sets the type of this register to be signed 8-bit integer</li>
+<li><code>i16</code>: <code>i16 register</code> sets the type of this register to be signed 16-bit integer</li>
+<li><code>i32</code>: <code>i32 register</code> sets the type of this register to be signed 32-bit integer</li>
+<li><code>i64</code>: <code>i64 register</code> sets the type of this register to be signed 64-bit integer</li>
+<li><code>u8</code>: <code>u8 register</code> sets the type of this register to be unsigned 8-bit integer</li>
+<li><code>u16</code>: <code>u16 register</code> sets the type of this register to be unsigned 16-bit integer</li>
+<li><code>u32</code>: <code>u32 register</code> sets the type of this register to be unsigned 32-bit integer</li>
+<li><code>u64</code>: <code>u64 register</code> sets the type of this register to be unsigned 64-bit integer</li>
+</ul>
+<h3 id="recursive-fibonacci">Recursive Fibonacci</h3>
+<p>Just for laughs i decided to write a recursive fibonacci function in Cypher Assembler.</p>
+<p>I was trying to encode this logic</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><a class="sourceLine" id="cb7-1" title="1"><span class="dt">uint64_t</span> fib(<span class="dt">uint64_t</span> x)</a>
+<a class="sourceLine" id="cb7-2" title="2">{</a>
+<a class="sourceLine" id="cb7-3" title="3">    <span class="cf">if</span>(x == <span class="dv">0</span>)</a>
+<a class="sourceLine" id="cb7-4" title="4">        <span class="cf">return</span> <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb7-5" title="5">    <span class="cf">if</span>(x == <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb7-6" title="6">        <span class="cf">return</span> <span class="dv">1</span>;</a>
+<a class="sourceLine" id="cb7-7" title="7">    <span class="cf">return</span> fib(x - <span class="dv">1</span>) + fib(x - <span class="dv">2</span>);</a>
+<a class="sourceLine" id="cb7-8" title="8">}</a></code></pre></div>
+<p>And here’s the result (it works)</p>
+<pre class="x86"><code>proc fib
+    u64 r0; argument and return value
+
+    ; if(r0 == 0) return 0;
+    u64 r1
+    mov r1 0
+    eq r0 r1; r0 == 0
+    jt EARLY_EXIT_0; jump to early exit if r0 == 0
+
+    ; if(r0 == 1) return 1;
+    mov r1 1
+    eq r0 r1; r0 == 1
+    jt EARLY_EXIT_1; jump to early exit if r0 == 1
+
+    u64 r2
+    mov r2 r0; move the argument to r2
+    push r2; save the argument on the stack
+
+    ;fib(r0 - 1);
+    sub r2 r1 r0; r0 = r2 - r1(1) which means r0 = r2 - 1
+    call fib ;call fib(r0 - 1)
+    pop r2; pop the original argument from the stack
+    push r0; push the result of fib(r0 - 1) on the stack
+
+    ;fib(r0 - 2)
+    mov r1 2; set r1 to 2
+    sub r2 r1 r0; r0 = r2 - r1(2) which means r0 = r2 - 2
+    call fib; call fib(r0 - 2)
+
+    pop r2; pop the result of fib(r0 - 1) from the stack
+
+    ;set r0 = fib(r0 - 1) + fib(r0 - 2)
+    add r0 r2 r0; r0 = r0(fib(r0-2)) + r2(fib(r0-1))
+    ret;
+
+;early exit when argument is 0
+EARLY_EXIT_0:
+    mov r0 0; since the fib(0) is 0
+    ret
+
+;early exit when argument is 1
+EARLY_EXIT_1:
+    mov r0 1; since the fib(1) is 1
+    ret
+end</code></pre>
+<h3 id="download">Download</h3>
+<p>Here you can download the x64 build of the cypher assembler</p>
+<ul>
+<li><a href="https://github.com/MoustaphaSaad/MoustaphaSaad.github.io/releases/download/v0/adventure_1_cypher_assembler_win64.zip">Windows</a></li>
+<li><a href="https://github.com/MoustaphaSaad/MoustaphaSaad.github.io/releases/download/v0/adventure_1_cypher_assembler_linux64.zip">Linux</a></li>
+</ul>
+<p>Of Course you can invoke it with the following command <code>cypher run file.asm</code> if you want some time measurements you can add the <code>--verbose</code> flag to be <code>cypher run file.asm --verbose</code></p>
+<h3 id="conculsion">Conculsion</h3>
+<p>Although being just a hobbiest work Sage VM was about 6x faster than python in the sum program N=100000 and 500 microseconds behind JS on chrome.</p>
+<p>Virtual Machines, Compilers, Assemblers, and Programming Languages are fun to fiddle with if you are interested in this work -for example if you want to implement Sage VM in other programming languages than C++ to see the performance difference- let me know through email i can post the spec of the Sage VM and make the assembler-&gt;binary available for you.</p>
+            </div>
+    </div>
+  </div>
+</body>
+</html>
