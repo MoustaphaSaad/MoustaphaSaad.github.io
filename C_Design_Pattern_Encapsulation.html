@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>C Design Pattern: Encapsulation</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="templates/template.css" />
+</head>
+<body>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+        <ul>
+          <li class="nav-header">Table of Contents</li>
+        </ul>
+        <ul>
+        <li><a href="#c-design-pattern-encapsulation">C Design Pattern: Encapsulation</a><ul>
+        <li><a href="#encapsulation">Encapsulation</a></li>
+        <li><a href="#fake-encapsulation">Fake Encapsulation</a></li>
+        <li><a href="#real-encapsulation-c">Real Encapsulation: C++</a></li>
+        <li><a href="#real-encapsulation-c-1">Real Encapsulation: C</a><ul>
+        <li><a href="#the-handle">The Handle</a></li>
+        </ul></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+        </ul></li>
+        </ul>
+        </div>
+      </div>
+            <div class="span9">
+            <h1 id="c-design-pattern-encapsulation">C Design Pattern: Encapsulation</h1>
+<p>28, Dec, 2018</p>
+<p>Today we’ll show a pattern I’ve found to be useful in the “pure coding style” I’ve developed over the last 9 months.</p>
+<h2 id="encapsulation">Encapsulation</h2>
+<p>Encapsulation is the corner stone of OOP and yet I’ve yet to find and OOP advocate who understands it, as we’ve established earlier encapsulation means that an object will encapsulate its state so that no one else can access this state and all you can access from outside the object is an interface of messages you can send to the object which in response it will move from a <strong>valid</strong> state to another <strong>valid</strong> state thus making an API that no one can misuse, and it’s easy to replace since all you have to do is substitute the old object with a newer one that can respond to the same messages and you’re good to go.</p>
+<blockquote>
+<p>I thought of objects being like biological cells and/or individual computers on a network, only able to communicate with messages (so messaging came at the very beginning – it took a while to see how to do messaging in a programming language efficiently enough to be useful). - Alan Kay</p>
+</blockquote>
+<h2 id="fake-encapsulation">Fake Encapsulation</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">class</span> Rectangle</a>
+<a class="sourceLine" id="cb1-2" title="2">{</a>
+<a class="sourceLine" id="cb1-3" title="3">    <span class="dt">float</span> width, height;</a>
+<a class="sourceLine" id="cb1-4" title="4"></a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb1-6" title="6">    <span class="dt">float</span> getWidth() <span class="at">const</span> { <span class="cf">return</span> width; }</a>
+<a class="sourceLine" id="cb1-7" title="7">    <span class="dt">void</span> setWidth(<span class="dt">float</span> w) { width = w; }</a>
+<a class="sourceLine" id="cb1-8" title="8"></a>
+<a class="sourceLine" id="cb1-9" title="9">    <span class="dt">float</span> getHeight() <span class="at">const</span> { <span class="cf">return</span> height; }</a>
+<a class="sourceLine" id="cb1-10" title="10">    <span class="dt">void</span> setHeight(<span class="dt">float</span> h) { height = h; }</a>
+<a class="sourceLine" id="cb1-11" title="11">};</a></code></pre></div>
+<p>As we you can see the trivial thinking that the above code is “Encapsulated” is not true, you might as well make the width and height members public, all you’ve done here is expose them with different syntax.</p>
+<p>حطيت طبقة عازلة من الفانكشنز شكرا يا عم الكهربائي</p>
+<p><strong>CAN WE PLEASE STOP TEACHING THAT!!</strong></p>
+<h2 id="real-encapsulation-c">Real Encapsulation: C++</h2>
+<p>Encapsulation in C++ can be achieved in a nice way i guess but i don’t use this because of the overhead it produces for every virtual function call. But i don’t mind this style at all since it’s really captures the real spirit of the OOP, I only prefer the C version better since it’s more boiled down and at the end of the day “to each his own”.</p>
+<p><strong>Window.h</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb2-1" title="1"><span class="co">//you only declare an interface in the header with only public pure virtual functions</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="kw">class</span> IWindow</a>
+<a class="sourceLine" id="cb2-3" title="3">{</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="kw">public</span>:</a>
+<a class="sourceLine" id="cb2-5" title="5">    <span class="kw">virtual</span> Event pollEvent() = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb2-6" title="6">    <span class="kw">virtual</span> <span class="dt">void</span> minimize() = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb2-7" title="7">    <span class="kw">virtual</span> <span class="dt">void</span> maximize() = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb2-8" title="8">    <span class="kw">virtual</span> <span class="dt">void</span> close() = <span class="dv">0</span>;</a>
+<a class="sourceLine" id="cb2-9" title="9">};</a>
+<a class="sourceLine" id="cb2-10" title="10"></a>
+<a class="sourceLine" id="cb2-11" title="11"><span class="co">//you can create a window using this function and you don&#39;t care what is the</span></a>
+<a class="sourceLine" id="cb2-12" title="12"><span class="co">//underlying type of the interface all you care about is that it provides an implementation</span></a>
+<a class="sourceLine" id="cb2-13" title="13"><span class="co">//to the above 4 functions</span></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="bu">std::</span>unique_ptr&lt;IWindow&gt; make_window(<span class="dt">uint32_t</span> width, <span class="dt">uint32_t</span> height, <span class="at">const</span> <span class="bu">std::</span>string&amp; title);</a></code></pre></div>
+<p><strong>Window.cpp</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb3-1" title="1"><span class="co">//we put the implementation of the interface in the cpp since no one really is interested in</span></a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="co">//the actual implementation of the interface</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="kw">class</span> CWindow <span class="kw">final</span>: <span class="kw">public</span> IWindow</a>
+<a class="sourceLine" id="cb3-4" title="4">{</a>
+<a class="sourceLine" id="cb3-5" title="5">    Event pollEvent() <span class="kw">override</span></a>
+<a class="sourceLine" id="cb3-6" title="6">    {</a>
+<a class="sourceLine" id="cb3-7" title="7">        ...</a>
+<a class="sourceLine" id="cb3-8" title="8">    }</a>
+<a class="sourceLine" id="cb3-9" title="9">};</a>
+<a class="sourceLine" id="cb3-10" title="10"></a>
+<a class="sourceLine" id="cb3-11" title="11"><span class="bu">std::</span>unique_ptr&lt;IWindow&gt; make_window(<span class="dt">uint32_t</span> w, <span class="dt">uint32_t</span> h, <span class="at">const</span> <span class="bu">std::</span>string&amp; t)</a>
+<a class="sourceLine" id="cb3-12" title="12">{</a>
+<a class="sourceLine" id="cb3-13" title="13">    <span class="cf">return</span> <span class="bu">std::</span>make_unique&lt;CWindow&gt;(w, h, t);</a>
+<a class="sourceLine" id="cb3-14" title="14">}</a></code></pre></div>
+<h2 id="real-encapsulation-c-1">Real Encapsulation: C</h2>
+<p>The C version of the above code is quite boiled down to the basics and really quite versatile in comparison.</p>
+<h3 id="the-handle">The Handle</h3>
+<p>In C++ we defined an interface and handed the user a unique_ptr to this interface. In C we’ll construct what’s called a handle which can be a number representing an index in array or a pointer into an object pool or a pointer which is normally allocated using malloc/free</p>
+<p><strong>Window.h</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb4-1" title="1"><span class="co">//personally i like the handle to be strongly typed so i create a dummy struct</span></a>
+<a class="sourceLine" id="cb4-2" title="2"><span class="co">//and typedef a pointer to it to benefit from the strongly typing of C++</span></a>
+<a class="sourceLine" id="cb4-3" title="3"><span class="co">//of course you can typedef it to be void* but then you can pass any pointer</span></a>
+<a class="sourceLine" id="cb4-4" title="4"><span class="co">//to the window functions</span></a>
+<a class="sourceLine" id="cb4-5" title="5"><span class="kw">typedef</span> <span class="kw">struct</span> Window__{ <span class="dt">int</span> dummy; } *Window;</a>
+<a class="sourceLine" id="cb4-6" title="6"></a>
+<a class="sourceLine" id="cb4-7" title="7">Window window_new(<span class="dt">uint32_t</span> width, <span class="dt">uint32_t</span> height, <span class="at">const</span> <span class="dt">char</span>* title);</a>
+<a class="sourceLine" id="cb4-8" title="8"><span class="dt">void</span>   window_free(Window window);</a>
+<a class="sourceLine" id="cb4-9" title="9">Event  window_poll(Window window);</a>
+<a class="sourceLine" id="cb4-10" title="10"><span class="dt">void</span>   window_minimize(Window window);</a>
+<a class="sourceLine" id="cb4-11" title="11"><span class="dt">void</span>   window_maximize(Window window);</a>
+<a class="sourceLine" id="cb4-12" title="12"><span class="dt">void</span>   window_close(Window window);</a></code></pre></div>
+<p><strong>Window.cpp</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c++"><code class="sourceCode cpp"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">struct</span> Internal_Window</a>
+<a class="sourceLine" id="cb5-2" title="2">{</a>
+<a class="sourceLine" id="cb5-3" title="3">    <span class="co">//... your data goes here</span></a>
+<a class="sourceLine" id="cb5-4" title="4">};</a>
+<a class="sourceLine" id="cb5-5" title="5"></a>
+<a class="sourceLine" id="cb5-6" title="6">Window</a>
+<a class="sourceLine" id="cb5-7" title="7">window_new(<span class="dt">uint32_t</span> width, <span class="dt">uint32_t</span> height, <span class="at">const</span> <span class="dt">char</span>* title)</a>
+<a class="sourceLine" id="cb5-8" title="8">{</a>
+<a class="sourceLine" id="cb5-9" title="9">    Internal_Window* self = (Internal_Window*)malloc(<span class="kw">sizeof</span>(Internal_Window));</a>
+<a class="sourceLine" id="cb5-10" title="10">    <span class="co">//init you window here</span></a>
+<a class="sourceLine" id="cb5-11" title="11"></a>
+<a class="sourceLine" id="cb5-12" title="12">    <span class="co">//you can cast a pointer to another pointer since they are all of the same type</span></a>
+<a class="sourceLine" id="cb5-13" title="13">    <span class="co">//and we merely defined the Window__ type in header for strongly typing purposes</span></a>
+<a class="sourceLine" id="cb5-14" title="14">    <span class="cf">return</span> (Window)self;</a>
+<a class="sourceLine" id="cb5-15" title="15">}</a>
+<a class="sourceLine" id="cb5-16" title="16"></a>
+<a class="sourceLine" id="cb5-17" title="17"><span class="dt">void</span></a>
+<a class="sourceLine" id="cb5-18" title="18">window_free(Window window)</a>
+<a class="sourceLine" id="cb5-19" title="19">{</a>
+<a class="sourceLine" id="cb5-20" title="20">    Internal_Window* self = (Internal_Window*)window;</a>
+<a class="sourceLine" id="cb5-21" title="21">    <span class="co">//free the window here</span></a>
+<a class="sourceLine" id="cb5-22" title="22">    free(self);</a>
+<a class="sourceLine" id="cb5-23" title="23">}</a></code></pre></div>
+<p>In the above code i choose to allocate the window using the malloc/free but i could also easily created a static window array in the cpp and returned an index to one of it’s elements.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Encapsulation is all about making the API represent the user intent and hiding the implementation into a cpp file where no one else can even reference it.</p>
+<p>In practice this type of encapsulation allows you to change the implementation without even recompiling the user code all you have to do is provide the newer dll. Also it results in the most user friendly APIs i’ve seen.</p>
+            </div>
+    </div>
+  </div>
+</body>
+</html>

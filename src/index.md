@@ -4,6 +4,7 @@ Some dude who loves computers, compilers, graphics, and math.
 **E-Mail**: moustapha.saad.abdelhamed@gmail.com
 
 ## Posts:
+- [C Design Patterns: Encapsulation](C_Design_Pattern_Encapsulation.html) - 28, Dec, 2018
 - [Cypher Assembler - Adventure 1](adventure_1_cypher_assembler.html) - 19, Dec, 2018
 - [C Design Patterns: Polymorphism](C_Design_Pattern_Polymorphism.html) - 07, Dec, 2018
 - [Pure Coding Style](Pure_Coding_Style.html) - 06, Dec, 2018
