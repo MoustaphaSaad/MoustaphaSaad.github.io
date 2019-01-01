@@ -3,7 +3,12 @@ Some dude who loves computers, compilers, graphics, and math.
 
 **E-Mail**: moustapha.saad.abdelhamed@gmail.com
 
+## Public Repos:
+- [MN](https://gitlab.com/MoustaphaSaad/mn): the minimal C++ library which i use in my "pure coding" style
+	- [v01012019](https://gitlab.com/MoustaphaSaad/mn/tags/v01012019): the initial release
+
 ## Posts:
+- [MN Tour](mn_tour.html) - 01, Jan, 2019
 - [C Design Patterns: Encapsulation](C_Design_Pattern_Encapsulation.html) - 28, Dec, 2018
 - [Cypher Assembler - Adventure 1](adventure_1_cypher_assembler.html) - 19, Dec, 2018
 - [C Design Patterns: Polymorphism](C_Design_Pattern_Polymorphism.html) - 07, Dec, 2018
