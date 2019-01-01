@@ -4,7 +4,7 @@
 
 MN is a minimal support library that i use and helps me in my "Pure Coding" style.
 
-I think the way C was intended is to build your own tools and abstractions on top of the language the C standard library provides both an example and a bare minimum library to use in your application, You need to build your own tools and abstractions that suites you and the programs you intend to build, so feel free to take it change it to suite your needs, also if you wanted to add new features to it send them to me and I'll see what i can do.
+I think the way C was intended is to build your own tools and abstractions on top of the language. the C standard library provides both an example and a bare minimum library to use in your application, You need to build your own tools and abstractions that suites you and the programs you intend to build, MN also adheres to this philosophy so feel free to take it change it to suite your needs, also if you wanted to add new features to it send them to me and I'll see what i can do.
 
 You can communicate with me through e-mail moustapha.saad.abdelhamed@gmail.com
 
