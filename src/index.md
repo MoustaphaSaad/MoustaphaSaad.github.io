@@ -8,6 +8,7 @@ Some dude who loves computers, compilers, graphics, and math.
 	- [v01012019](https://gitlab.com/MoustaphaSaad/mn/tags/v01012019): the initial release
 
 ## Posts:
+- [On Social Media](On_Social_Media.html) - 07, Jan, 2019
 - [MN Tour](mn_tour.html) - 01, Jan, 2019
 - [C Design Patterns: Encapsulation](C_Design_Pattern_Encapsulation.html) - 28, Dec, 2018
 - [Cypher Assembler - Adventure 1](adventure_1_cypher_assembler.html) - 19, Dec, 2018
