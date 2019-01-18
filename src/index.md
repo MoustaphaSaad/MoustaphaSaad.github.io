@@ -10,6 +10,9 @@ Some dude who loves computers, compilers, graphics, and math.
 		- added ring container support
 		- added thread support
 
+- [Hamilton](https://gitlab.com/MoustaphaSaad/hamilton): is a minimal header-only math library for graphics
+	- [v18012019](https://gitlab.com/MoustaphaSaad/hamilton/tags/v18012019): the initial release
+
 ## Posts:
 - [On Social Media](On_Social_Media.html) - 07, Jan, 2019
 - [MN Tour](mn_tour.html) - 01, Jan, 2019
