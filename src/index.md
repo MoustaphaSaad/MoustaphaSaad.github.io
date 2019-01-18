@@ -6,6 +6,9 @@ Some dude who loves computers, compilers, graphics, and math.
 ## Public Repos:
 - [MN](https://gitlab.com/MoustaphaSaad/mn): the minimal C++ library which i use in my "pure coding" style
 	- [v01012019](https://gitlab.com/MoustaphaSaad/mn/tags/v01012019): the initial release
+	- [v18012019](https://gitlab.com/MoustaphaSaad/mn/tags/v18012019):
+		- added ring container support
+		- added thread support
 
 ## Posts:
 - [On Social Media](On_Social_Media.html) - 07, Jan, 2019
