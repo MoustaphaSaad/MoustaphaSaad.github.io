@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Code Design Myth</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="templates/template.css" />
+</head>
+<body>
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+        <ul>
+          <li class="nav-header">Table of Contents</li>
+        </ul>
+        <ul>
+        <li><a href="#code-design-myth">Code Design Myth</a><ul>
+        <li><a href="#the-myth">The Myth</a></li>
+        <li><a href="#what-is-good-code">What is good code?</a></li>
+        <li><a href="#true-design">True Design</a></li>
+        </ul></li>
+        </ul>
+        </div>
+      </div>
+            <div class="span9">
+            <h1 id="code-design-myth">Code Design Myth</h1>
+<p>12, Mar, 2019</p>
+<h2 id="the-myth">The Myth</h2>
+<p>You go into your average CS school to learn that code design is important and you have to get it right to be a good software engineer. You also should do a design phase where you take the requirements as an input and you “Design” the solution maybe using UML then you have a documentation of the design, etc…, If only real world was this trivial.</p>
+<p>Spoiler alert, this shit doesn’t work.</p>
+<h2 id="what-is-good-code">What is good code?</h2>
+<p>Good code is the easiest to change. the definition of good code advances on a daily basis, maybe we’ll discover the flaws of our ideas tomorrow/next month/next year. So you have to prepared and that by making your code easy to change without breaking the whole thing down.</p>
+<p>Good code should have as little corner cases as possible, it also should be easy to understand given that i put the appropriate effort into understanding it.</p>
+<p>Good code should normalize the skill level of the maintainer, a reasonably skilled developer should be as good as a 10-year veteran in maintaining the code.</p>
+<p>Given the above points, good code should be simple to humans and it has the upside of being simple for the machine also so as a side effect you get a efficient code in return. Don’t misunderstand that you seek performance, write simple enough code and it will be efficient by definition. Note that in case of choosing between performance and simplicity always favor simplicity and if performance is really necessary then separate your code into different layers that build upon each other.</p>
+<p>For example let’s consider the case where you are tasked with building an <strong>easy to use</strong>, <strong>efficient</strong> job queue since this is the latest thing i did. I divided it into 4 layers</p>
+<ul>
+<li>Layer 1: you are able to create a worker and jobs to its queue and it will consume jobs off the queue</li>
+<li>Layer 2: you are able to create a group of worker with round-robin style of job scheduling + job stealing. Note that until now the code is as simple as it gets and no dynamic allocation is done while spawning new jobs. and jobs are just function pointers of this signature <code>void func(void* arg1, void* arg2)</code></li>
+<li>Layer 3: you are able schedule any C++ callable object as a job like lambda, function pointer, function objects, etc…, but at the cost of maybe doing dynamic allocation depending on the size</li>
+<li>Layer 4: you just declare the computation and let the underlying job system do its magic. using the simple <code>map</code> and <code>reduce</code> functions and they are responsible of dividing the jobs on multiple threads and collecting the result back</li>
+</ul>
+<p>Using this separation you will enable ease of use in all the code and efficiency in areas where performance is important areas.</p>
+<h2 id="true-design">True Design</h2>
+<p>Design in general is the process of taking decisions to do some task. Decisions happen on multiple levels, in the process of writing code you take decisions like</p>
+<ul>
+<li>Level 0: deciding which keys to press on the keyboard</li>
+<li>Level 1: deciding variable names, function names, code style, indentation</li>
+<li>Level 2: deciding which (language features/variable ownership/usage code) you’ll use to do the solve the problem at the moment</li>
+<li>Level 3: making an algorithm to solve the problem</li>
+<li>Level 4: making sense of how this piece will fit with other parts of the project</li>
+</ul>
+<p>Note that each level influence the above layers, for example choosing a different language feature may lead you to a different algorithm altogether, Also algorithm may influence the lifetime/ownership of some code since it will dictate how the code should flow, etc…</p>
+<p>Many developers have the misconception that design only happen on level 4 or maybe 3 and they ignore other lower layers, and that’s wrong, every time you write struct, function signature, allocate memory, for loop, etc.. you are taking a design decision. and it’s even more important to get right than other higher layer decisions.</p>
+<p>A Good design should be invisible to the eye, it should be so easy you don’t give it a second thought. First you should get familiar with the problem you are trying to solve. Don’t spend much time on designing if you are stuck then drop this task for now and work on something else, maybe after that you’ll know how to solve the problem.</p>
+<p>So if you ever find yourself “Designing” a thing you are doing it wrong.</p>
+            </div>
+    </div>
+  </div>
+</body>
+</html>

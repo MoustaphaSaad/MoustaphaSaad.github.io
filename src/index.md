@@ -14,6 +14,7 @@ Some dude who loves computers, compilers, graphics, and math.
 	- [v18012019](https://gitlab.com/MoustaphaSaad/hamilton/tags/v18012019): the initial release
 
 ## Posts:
+- [Code Design Myth](Code_Design_Myth.html) - 12, Mar, 2019
 - [On Moderation](On_Moderation.html) - 04, Mar, 2019
 - [On Social Media](On_Social_Media.html) - 07, Jan, 2019
 - [MN Tour](mn_tour.html) - 01, Jan, 2019
