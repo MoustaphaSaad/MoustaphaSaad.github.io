@@ -9,6 +9,17 @@ Some dude who loves computers, compilers, graphics, and math.
 	- [v18012019](https://gitlab.com/MoustaphaSaad/mn/tags/v18012019):
 		- added ring container support
 		- added thread support
+	- [v22032019](https://gitlab.com/MoustaphaSaad/mn/tree/v22032019):
+		- add single-write multi-reader mutex
+		- add str_tmpf to easily format tmp strings
+		- add strf to easily create formatted strings
+		- add buf_remove, buf_remove_if functions to delete elements
+		- add pre-generated projects for vs2017 and make
+		- add compile_commands.json for easy auto-complete
+		- add memory_stream_cursor_set to move cursor to absolute position
+		- add str_resize function
+		- add murmur_hash block interface
+		- minor fixes
 
 - [Hamilton](https://gitlab.com/MoustaphaSaad/hamilton): is a minimal header-only math library for graphics
 	- [v18012019](https://gitlab.com/MoustaphaSaad/hamilton/tags/v18012019): the initial release
