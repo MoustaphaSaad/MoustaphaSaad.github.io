@@ -4,7 +4,7 @@ Some dude who loves computers, compilers, graphics, and math.
 **E-Mail**: moustapha.saad.abdelhamed@gmail.com
 
 ## Public Repos:
-- [MN](https://gitlab.com/MoustaphaSaad/mn): the minimal C++ library which i use in my "pure coding" style
+- [MN](https://github.com/MoustaphaSaad/mn): the minimal C++ library which i use in my "pure coding" style
 	- [v01012019](https://gitlab.com/MoustaphaSaad/mn/tags/v01012019): the initial release
 	- [v18012019](https://gitlab.com/MoustaphaSaad/mn/tags/v18012019):
 		- added ring container support
@@ -20,6 +20,13 @@ Some dude who loves computers, compilers, graphics, and math.
 		- add str_resize function
 		- add murmur_hash block interface
 		- minor fixes
+	- [v19042019](https://github.com/MoustaphaSaad/mn/tree/v19042019)
+		- clear all the warnings
+		- add some string and buf helper functions
+
+- [Loom](https://github.com/MoustaphaSaad/loom): a minimal job queue implementation
+	- [v19042019](https://github.com/MoustaphaSaad/loom/tree/v19042019)
+		- initial public release
 
 - [Hamilton](https://gitlab.com/MoustaphaSaad/hamilton): is a minimal header-only math library for graphics
 	- [v18012019](https://gitlab.com/MoustaphaSaad/hamilton/tags/v18012019): the initial release
