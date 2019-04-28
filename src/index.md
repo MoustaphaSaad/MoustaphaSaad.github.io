@@ -23,6 +23,9 @@ Some dude who loves computers, compilers, graphics, and math.
 	- [v19042019](https://github.com/MoustaphaSaad/mn/tree/v19042019)
 		- clear all the warnings
 		- add some string and buf helper functions
+	- [v28042019](https://github.com/MoustaphaSaad/mn/tree/v28042019)
+		- add static library support
+		- fix char read_str bug
 
 - [Loom](https://github.com/MoustaphaSaad/loom): a minimal job queue implementation
 	- [v19042019](https://github.com/MoustaphaSaad/loom/tree/v19042019)
